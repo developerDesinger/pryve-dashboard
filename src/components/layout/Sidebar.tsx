@@ -58,10 +58,20 @@ export function Sidebar() {
   );
 
   return (
-    <aside className="hidden md:flex w-64 shrink-0 flex-col p-4 bg-white border-r border-border">
+    <aside 
+      id="app-sidebar"
+      className="fixed md:static z-40 top-0 left-0 h-dvh w-64 md:w-64 shrink-0 flex-col p-4 bg-white border-r border-border -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out"
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="text-[21px] font-semibold mb-4 pb-4 border-b border-border -mx-4 px-4">pryve</div>
       
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-col gap-1" onClick={() => {
+        const el = document.getElementById('app-sidebar');
+        if (el) {
+          el.classList.add('-translate-x-full');
+          el.classList.remove('translate-x-0');
+        }
+      }}>
         <SectionHeader title="Main" />
         {sidebarData.main.map((item) => {
           const active = isActive(item.href);
