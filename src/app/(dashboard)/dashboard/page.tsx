@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import StatCard from "@/components/dashboard/StatCard";
 import UserActivityChart from "@/components/dashboard/UserActivityChart";
 import UserEngagementDonut from "@/components/dashboard/UserEngagementDonut";
+import EmotionalTopicsAnalysis from "@/components/dashboard/EmotionalTopicsAnalysis";
+import RecentActivityList from "@/components/dashboard/RecentActivityList";
 import stats from "@/data/stats.json";
 
 export default function DashboardPage() {
@@ -35,6 +37,15 @@ export default function DashboardPage() {
         </div>
         <div className="min-w-0">
           <UserEngagementDonut />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4 items-stretch">
+        <div className="min-w-0">
+          <EmotionalTopicsAnalysis />
+        </div>
+        <div className="min-w-0">
+          <RecentActivityList />
         </div>
       </div>
     </div>
