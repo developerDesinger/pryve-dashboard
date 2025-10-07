@@ -1,43 +1,31 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import StatCard from "@/components/dashboard/StatCard";
+import stats from "@/data/stats.json";
 
 export default function DashboardPage() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <Card className="lg:col-span-3">
-        <CardHeader>
-          <CardTitle>Welcome, Admin!</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-[14px] text-muted-foreground">
-            This is your new dashboard scaffold. Start adding widgets here.
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-[24px] leading-9 font-bold text-[#242424]">Welcome, Joe!</h1>
+        <p className="mt-1 text-[16px] leading-6 text-muted-foreground">
+          Here's what is happening with Pryve today.
+        </p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Total Users</CardTitle>
-        </CardHeader>
-        <CardContent className="text-[28px] font-semibold">1,247</CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Chats</CardTitle>
-        </CardHeader>
-        <CardContent className="text-[28px] font-semibold">342</CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex items-center justify-between">
-          <CardTitle>Recent Activity</CardTitle>
-          <Badge variant="warning">Prototype</Badge>
-        </CardHeader>
-        <CardContent className="text-[14px] text-muted-foreground">
-          Hook this up to real data when ready.
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((item) => (
+          <StatCard
+            key={item.id}
+            title={item.title}
+            value={item.value}
+            changeText={item.changeText}
+            changeClassName={item.changeClassName}
+            icon={<img src={item.iconSrc} alt={item.id} className="w-5 h-5" />}
+            iconContainerClassName={item.iconContainerClassName}
+          />
+        ))}
+      </div>
     </div>
   );
 }
