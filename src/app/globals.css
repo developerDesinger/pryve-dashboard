@@ -53,14 +53,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b0c0f;
-    --foreground: #f3f4f6;
-    --muted: #111318;
-    --muted-foreground: #9ca3af;
-    --accent: #111318;
-    --accent-foreground: #e5e7eb;
-    --border: #1f242e;
-    --ring: #3b82f6;
+    --background: #f0f0f0;
+    --foreground: #0b0c0f;
+    --muted: #eef2f6;
+    --muted-foreground: #667085;
+    --accent: #f4f6fb;
+    --accent-foreground: #111827;
+    --border: #e5e7eb;
+    --ring: #c7d2fe;
   }
 }
 

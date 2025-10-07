@@ -7,10 +7,10 @@ export function Topbar() {
   const [query, setQuery] = useState("");
   const router = useRouter();
   return (
-    <header className="h-16 border-b border-border flex items-center justify-between px-4 bg-white">
+    <header className="h-16 border-b border-border flex items-center justify-between px-4 bg-white dark:bg-white">
       <div className="flex items-center gap-3 min-w-0 w-full">
         <button
-          className="md:hidden w-10 h-10 rounded-full border border-border inline-flex items-center justify-center bg-white text-foreground cursor-pointer"
+          className="md:hidden w-10 h-10 rounded-full border border-border inline-flex items-center justify-center bg-white dark:bg-white text-foreground cursor-pointer"
           aria-label="Open menu"
           onClick={(e) => {
             e.stopPropagation();
@@ -65,7 +65,7 @@ export function Topbar() {
         {/* mobile close button removed as requested */}
         <button
           aria-label="Notifications"
-          className="w-10 h-10 aspect-square shrink-0 rounded-full border border-border inline-flex items-center justify-center text-muted-foreground bg-white p-0 cursor-pointer hover:bg-accent transition-colors"
+          className="w-10 h-10 aspect-square shrink-0 rounded-full border border-border inline-flex items-center justify-center text-muted-foreground bg-white dark:bg-white p-0 cursor-pointer hover:bg-accent transition-colors"
         >
           <img src="/icons/bell.svg" alt="Notifications" className="w-4 h-4" />
         </button>
