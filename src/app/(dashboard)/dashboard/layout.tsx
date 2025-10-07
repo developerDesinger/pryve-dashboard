@@ -8,10 +8,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-dvh grid grid-cols-1 md:grid-cols-[256px_1fr] bg-background">
+    <div className="h-dvh overflow-hidden grid grid-cols-1 md:grid-cols-[256px_1fr] bg-background">
       <Sidebar />
       <div 
-        className="flex flex-col min-w-0"
+        className="flex flex-col min-w-0 min-h-0"
         onClick={() => {
           const el = document.getElementById("app-sidebar");
           if (el) {
@@ -21,7 +21,7 @@ export default function DashboardLayout({
         }}
       >
         <Topbar />
-        <main className="p-3 sm:p-4 md:p-6 space-y-6 bg-background">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-6 bg-background">{children}</main>
       </div>
     </div>
   );

@@ -1,0 +1,50 @@
+{
+  "periods": {
+    "Monthly": [
+      { "label": "Jan", "users": 980, "messages": 1480 },
+      { "label": "Feb", "users": 1020, "messages": 1500 },
+      { "label": "Mar", "users": 1000, "messages": 1550 },
+      { "label": "Apr", "users": 1040, "messages": 1580 },
+      { "label": "May", "users": 1100, "messages": 1620 },
+      { "label": "Jun", "users": 1120, "messages": 1600 },
+      { "label": "Jul", "users": 1080, "messages": 1570 },
+      { "label": "Aug", "users": 1200, "messages": 1680 },
+      { "label": "Sep", "users": 1220, "messages": 1750 },
+      { "label": "Oct", "users": 1190, "messages": 1730 },
+      { "label": "Nov", "users": 1210, "messages": 1760 },
+      { "label": "Dec", "users": 1300, "messages": 2000 }
+    ],
+    "Weekly": [
+      { "label": "W1", "users": 820, "messages": 1210 },
+      { "label": "W2", "users": 860, "messages": 1260 },
+      { "label": "W3", "users": 910, "messages": 1330 },
+      { "label": "W4", "users": 950, "messages": 1400 },
+      { "label": "W5", "users": 980, "messages": 1450 },
+      { "label": "W6", "users": 1000, "messages": 1480 },
+      { "label": "W7", "users": 1020, "messages": 1500 },
+      { "label": "W8", "users": 1040, "messages": 1530 },
+      { "label": "W9", "users": 1060, "messages": 1570 },
+      { "label": "W10", "users": 1090, "messages": 1600 },
+      { "label": "W11", "users": 1110, "messages": 1620 },
+      { "label": "W12", "users": 1150, "messages": 1680 }
+    ],
+    "Daily": [
+      { "label": "1", "users": 900, "messages": 1400 },
+      { "label": "2", "users": 905, "messages": 1410 },
+      { "label": "3", "users": 910, "messages": 1440 },
+      { "label": "4", "users": 920, "messages": 1460 },
+      { "label": "5", "users": 930, "messages": 1470 },
+      { "label": "6", "users": 940, "messages": 1490 },
+      { "label": "7", "users": 955, "messages": 1500 },
+      { "label": "8", "users": 970, "messages": 1520 },
+      { "label": "9", "users": 985, "messages": 1530 },
+      { "label": "10", "users": 990, "messages": 1540 },
+      { "label": "11", "users": 1000, "messages": 1550 },
+      { "label": "12", "users": 1015, "messages": 1570 },
+      { "label": "13", "users": 1030, "messages": 1590 },
+      { "label": "14", "users": 1045, "messages": 1610 }
+    ]
+  }
+}
+
+
