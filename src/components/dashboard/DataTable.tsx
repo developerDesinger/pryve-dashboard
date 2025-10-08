@@ -40,7 +40,7 @@ export default function DataTable<T extends { id: string | number }>({
             <tr className="text-[11px] sm:text-[12px] text-muted-foreground bg-accent border-b border-border">
               {selectable && (
                 <th className="px-2 sm:px-4 py-2 sm:py-3 w-10">
-                  <input type="checkbox" className="w-4 h-4 rounded border-border" />
+                  <input type="checkbox" className="w-4 h-4 rounded border-border accent-gray-600" />
                 </th>
               )}
               {columns.map((c) => (
@@ -53,7 +53,7 @@ export default function DataTable<T extends { id: string | number }>({
               <tr key={row.id} className="border-t border-border hover:bg-accent bg-white">
                 {selectable && (
                   <td className="px-2 sm:px-4 py-3 sm:py-4 w-10">
-                    <input type="checkbox" className="w-4 h-4 rounded border-border" />
+                    <input type="checkbox" className="w-4 h-4 rounded border-border accent-gray-600" />
                   </td>
                 )}
                 {columns.map((c) => (
