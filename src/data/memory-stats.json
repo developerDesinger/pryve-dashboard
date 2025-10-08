@@ -1,0 +1,30 @@
+[
+  {
+    "id": "cherished-memories",
+    "title": "Cherished Memories",
+    "value": "265",
+    "iconSrc": "/icons/Memory/Icon (7).svg",
+    "iconBg": "#f0f9ff"
+  },
+  {
+    "id": "connected-users",
+    "title": "Connected Users",
+    "value": "42",
+    "iconSrc": "/icons/Memory/Icon (8).svg",
+    "iconBg": "#f0fdf4"
+  },
+  {
+    "id": "avg-connection-depth",
+    "title": "Avg Connection Depth",
+    "value": "45%",
+    "iconSrc": "/icons/Memory/link.svg",
+    "iconBg": "#faf5ff"
+  },
+  {
+    "id": "growing-hearts",
+    "title": "Growing Hearts",
+    "value": "6",
+    "iconSrc": "/icons/Memory/Icon (9).svg",
+    "iconBg": "#fef2f2"
+  }
+]
