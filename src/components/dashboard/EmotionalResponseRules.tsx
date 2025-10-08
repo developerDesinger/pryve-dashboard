@@ -182,7 +182,11 @@ export default function EmotionalResponseRules() {
                 </td>
                 <td className="py-2 px-2 sm:py-3 sm:px-4 text-[10px] sm:text-[14px] text-gray-700 whitespace-nowrap">{rule.responseType}</td>
                 <td className="py-2 px-2 sm:py-3 sm:px-4 text-[10px] sm:text-[14px] text-gray-700 whitespace-nowrap">{rule.tone}</td>
-                <td className="py-2 px-2 sm:py-3 sm:px-4 text-[10px] sm:text-[14px] text-gray-700 max-w-[200px] sm:max-w-none truncate">{rule.description}</td>
+                <td className="py-2 px-2 sm:py-3 sm:px-4 text-[10px] sm:text-[14px] text-gray-700 max-w-[200px] sm:max-w-[300px]">
+                  <div className="max-h-16 sm:max-h-20 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                    {rule.description}
+                  </div>
+                </td>
                 <td className="py-2 px-2 sm:py-3 sm:px-4">
                   <button className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
                     <svg width="12" height="12" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

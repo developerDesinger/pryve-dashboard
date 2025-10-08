@@ -1,0 +1,30 @@
+[
+  {
+    "id": "1",
+    "title": "Monthly revenue",
+    "value": "$109.98",
+    "iconSrc": "/icons/Payments/Icon (4).svg",
+    "iconBg": "#eef5ff"
+  },
+  {
+    "id": "2",
+    "title": "Active subscriptions",
+    "value": "3",
+    "iconSrc": "/icons/Payments/crown.svg",
+    "iconBg": "#f0fdf4"
+  },
+  {
+    "id": "3",
+    "title": "Free users",
+    "value": "12",
+    "iconSrc": "/icons/Payments/Icon (5).svg",
+    "iconBg": "#eef5ff"
+  },
+  {
+    "id": "4",
+    "title": "Failed payments",
+    "value": "4",
+    "iconSrc": "/icons/Payments/Icon (6).svg",
+    "iconBg": "#fef2f2"
+  }
+]
