@@ -35,16 +35,16 @@ export default function DataTable<T extends { id: string | number }>({
         <div className="inline-flex items-center gap-2">{rightSlot}</div>
       </div>
       <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: bodyMaxHeight }}>
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse min-w-[600px]">
           <thead className="bg-accent">
-            <tr className="text-[11px] sm:text-[12px] text-muted-foreground bg-accent border-b border-border">
+            <tr className="text-[10px] sm:text-[12px] text-muted-foreground bg-accent border-b border-border">
               {selectable && (
-                <th className="px-2 sm:px-4 py-2 sm:py-3 w-10">
-                  <input type="checkbox" className="w-4 h-4 rounded border-border accent-gray-600" />
+                <th className="px-1 sm:px-4 py-2 sm:py-3 w-8 sm:w-10">
+                  <input type="checkbox" className="w-3 h-3 sm:w-4 sm:h-4 rounded border-border accent-gray-600" />
                 </th>
               )}
               {columns.map((c) => (
-                <th key={String(c.key)} className={`px-2 sm:px-4 py-2 sm:py-3 font-medium bg-accent ${c.widthClass ?? ""}`}>{c.header}</th>
+                <th key={String(c.key)} className={`px-1 sm:px-4 py-2 sm:py-3 font-medium bg-accent whitespace-nowrap ${c.widthClass ?? ""}`}>{c.header}</th>
               ))}
             </tr>
           </thead>
@@ -52,12 +52,12 @@ export default function DataTable<T extends { id: string | number }>({
             {data.map((row, i) => (
               <tr key={row.id} className="border-t border-border hover:bg-accent bg-white">
                 {selectable && (
-                  <td className="px-2 sm:px-4 py-3 sm:py-4 w-10">
-                    <input type="checkbox" className="w-4 h-4 rounded border-border accent-gray-600" />
+                  <td className="px-1 sm:px-4 py-2 sm:py-4 w-8 sm:w-10">
+                    <input type="checkbox" className="w-3 h-3 sm:w-4 sm:h-4 rounded border-border accent-gray-600" />
                   </td>
                 )}
                 {columns.map((c) => (
-                  <td key={String(c.key)} className="px-2 sm:px-4 py-3 sm:py-4 align-middle bg-white text-[13px] sm:text-[14px]">
+                  <td key={String(c.key)} className="px-1 sm:px-4 py-2 sm:py-4 align-middle bg-white text-[10px] sm:text-[14px] whitespace-nowrap">
                     {c.render ? c.render(row, i) : (row as any)[c.key as any]}
                   </td>
                 ))}
@@ -66,28 +66,28 @@ export default function DataTable<T extends { id: string | number }>({
           </tbody>
         </table>
       </div>
-      <div className="px-4 py-3 border-t border-border text-[14px] text-foreground bg-white rounded-b-2xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-muted-foreground">Rows per page</span>
-          <select defaultValue="50" className="h-9 rounded-xl border border-border bg-white px-3">
+      <div className="px-2 sm:px-4 py-3 border-t border-border text-[12px] sm:text-[14px] text-foreground bg-white rounded-b-2xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <span className="text-muted-foreground text-[10px] sm:text-[12px]">Rows per page</span>
+          <select defaultValue="50" className="h-8 sm:h-9 rounded-xl border border-border bg-white px-2 sm:px-3 text-[10px] sm:text-[12px]">
             <option value="10">10</option>
             <option value="25">25</option>
             <option value="50">50</option>
             <option value="100">100</option>
           </select>
         </div>
-        <div className="flex items-center gap-4 flex-wrap sm:justify-end">
-          <div className="flex items-center gap-2">
-            <span className="text-foreground">Go To Page</span>
-            <input defaultValue={page} className="h-9 w-12 text-center rounded-xl border border-border bg-white" />
-            <span className="text-muted-foreground">of {totalPages}</span>
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap sm:justify-end">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="text-foreground text-[10px] sm:text-[12px]">Go To Page</span>
+            <input defaultValue={page} className="h-8 sm:h-9 w-10 sm:w-12 text-center rounded-xl border border-border bg-white text-[10px] sm:text-[12px]" />
+            <span className="text-muted-foreground text-[10px] sm:text-[12px]">of {totalPages}</span>
           </div>
           <div className="hidden sm:block w-px h-6 bg-border" />
           <div className="inline-flex gap-2 w-full sm:w-auto">
-            <button className="h-9 px-4 rounded-xl border border-border bg-white text-foreground/80 cursor-not-allowed w-full sm:w-auto" disabled>
+            <button className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl border border-border bg-white text-foreground/80 cursor-not-allowed w-full sm:w-auto text-[10px] sm:text-[12px]" disabled>
               Previous
             </button>
-            <button className="h-9 px-4 rounded-xl bg-[#757575] text-white hover:brightness-95 cursor-pointer w-full sm:w-auto">Next</button>
+            <button className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl bg-[#757575] text-white hover:brightness-95 cursor-pointer w-full sm:w-auto text-[10px] sm:text-[12px]">Next</button>
           </div>
         </div>
       </div>
