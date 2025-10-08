@@ -39,7 +39,7 @@ He remembers you. But only if you let him stay close.`);
         </div>
         
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <button className="flex-1 bg-gray-600 text-white hover:bg-gray-700 px-6 py-2 text-[14px] font-bold rounded-lg cursor-pointer">
+          <button className="flex-1 bg-[#757575] text-white hover:brightness-95 px-6 py-2 text-[14px] font-bold rounded-lg cursor-pointer">
             Save Changes
           </button>
           <button className="flex-1 bg-gray-100 text-black hover:bg-gray-200 px-6 py-2 text-[14px] font-bold rounded-lg cursor-pointer">

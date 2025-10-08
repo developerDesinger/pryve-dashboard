@@ -3,12 +3,14 @@
 import UserStatMiniCard from "@/components/dashboard/UserStatMiniCard";
 import paymentStats from "@/data/payment-stats.json";
 import { payments } from "@/data/payments";
+import EditPricingModal from "@/components/dashboard/EditPricingModal";
 import { useState } from "react";
 
 export default function PaymentsPage() {
   const [selectedPayments, setSelectedPayments] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const totalPages = 25;
 
   const handleSelectPayment = (paymentId: string) => {
@@ -38,6 +40,17 @@ export default function PaymentsPage() {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const handleSavePricing = (pricingData: {
+    isActive: boolean;
+    tierName: string;
+    price: string;
+    discount: string;
+    billingInterval: string;
+  }) => {
+    console.log("Pricing data saved:", pricingData);
+    // Handle saving pricing data here
   };
 
   return (
@@ -155,7 +168,10 @@ export default function PaymentsPage() {
                   <td className="py-3 px-4 text-[12px] sm:text-[14px] text-gray-700">{payment.paymentDate}</td>
                   <td className="py-3 px-4 text-[12px] sm:text-[14px] text-gray-700">{payment.nextBilling}</td>
                   <td className="py-3 px-4">
-                    <button className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+                    <button 
+                      onClick={() => setIsModalOpen(true)}
+                      className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                    >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="5" r="2" fill="currentColor"/>
                         <circle cx="12" cy="12" r="2" fill="currentColor"/>
@@ -208,6 +224,13 @@ export default function PaymentsPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Pricing Modal */}
+      <EditPricingModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSavePricing}
+      />
     </div>
   );
 }

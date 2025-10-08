@@ -59,7 +59,7 @@ export default function UserDetails({ user, categories, memories, treasuredMemor
           </div>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-          <button className="px-4 py-2 bg-gray-400 text-gray-800 rounded-lg text-[14px] font-medium hover:bg-gray-500 transition-colors cursor-pointer">
+          <button className="px-4 py-2 bg-[#757575] text-white rounded-lg text-[14px] font-medium hover:brightness-95 transition-colors cursor-pointer">
             + Add
           </button>
           <button className="px-4 py-2 border border-red-300 text-red-600 rounded-lg text-[14px] font-medium hover:bg-red-50 transition-colors cursor-pointer">

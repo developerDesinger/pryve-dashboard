@@ -78,7 +78,7 @@ export default function FallbackMessages() {
                 </button>
                 <button 
                   onClick={() => handleEdit(message.id)}
-                  className="w-full sm:w-auto px-3 py-1 bg-gray-600 text-white rounded-lg text-[12px] font-medium hover:bg-gray-700 transition-colors cursor-pointer"
+                  className="w-full sm:w-auto px-3 py-1 bg-[#757575] text-white rounded-lg text-[12px] font-medium hover:brightness-95 transition-colors cursor-pointer"
                 >
                   {editingId === message.id ? 'Save' : 'Edit'}
                 </button>

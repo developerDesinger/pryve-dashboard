@@ -122,7 +122,7 @@ export default function EmotionalResponseRules() {
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg text-[14px] font-medium hover:bg-gray-700 transition-colors cursor-pointer"
+            className="px-4 py-2 bg-[#757575] text-white rounded-lg text-[14px] font-medium hover:brightness-95 transition-colors cursor-pointer"
           >
             + Add Rule
           </button>

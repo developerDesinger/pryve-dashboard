@@ -24,7 +24,7 @@ export default function MessageLimits() {
             <button
               onClick={() => setDailyReset(!dailyReset)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                dailyReset ? "bg-gray-600" : "bg-gray-300"
+                dailyReset ? "bg-[#757575]" : "bg-gray-300"
               }`}
             >
               <span

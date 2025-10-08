@@ -94,7 +94,7 @@ export default function FeatureToggles() {
                   disabled={feature.comingSoon}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                     enabledFeatures.includes(feature.id)
-                      ? 'bg-gray-600'
+                      ? 'bg-[#757575]'
                       : 'bg-gray-200'
                   } ${feature.comingSoon ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >

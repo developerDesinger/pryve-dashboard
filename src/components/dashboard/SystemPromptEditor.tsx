@@ -73,7 +73,7 @@ What Pryve should always remember about himself:
         </button>
         <button 
           onClick={() => setIsEditing(!isEditing)}
-          className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg text-[14px] font-medium hover:bg-gray-700 transition-colors cursor-pointer"
+          className="w-full px-4 py-2 bg-[#757575] text-white rounded-lg text-[14px] font-medium hover:brightness-95 transition-colors cursor-pointer"
         >
           {isEditing ? 'Save' : 'Edit'}
         </button>

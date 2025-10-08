@@ -46,7 +46,7 @@ export default function UpgradePromptTimings() {
                 <div
                   className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
                     selectedTiming === option.id
-                      ? "border-gray-600 bg-gray-600"
+                      ? "border-[#757575] bg-[#757575]"
                       : "border-gray-300 bg-white"
                   }`}
                 >

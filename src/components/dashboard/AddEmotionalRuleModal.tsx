@@ -141,7 +141,7 @@ export default function AddEmotionalRuleModal({ isOpen, onClose, onSave }: AddEm
           <div className="flex justify-end pt-6">
             <button
               type="submit"
-              className="px-8 py-3 bg-gray-600 text-white rounded-lg text-[16px] font-semibold hover:bg-gray-700 transition-colors cursor-pointer"
+              className="px-8 py-3 bg-[#757575] text-white rounded-lg text-[16px] font-semibold hover:brightness-95 transition-colors cursor-pointer"
             >
               Save system prompt
             </button>

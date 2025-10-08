@@ -146,7 +146,7 @@ export default function Integrations() {
               </p>
             </div>
           </div>
-          <button className="px-3 lg:px-4 py-2 bg-gray-600 text-white rounded-lg text-[12px] lg:text-[14px] font-medium hover:bg-gray-700 transition-colors cursor-pointer flex-shrink-0 w-full sm:w-auto">
+          <button className="px-3 lg:px-4 py-2 bg-[#757575] text-white rounded-lg text-[12px] lg:text-[14px] font-medium hover:brightness-95 transition-colors cursor-pointer flex-shrink-0 w-full sm:w-auto">
             Request
           </button>
         </div>
