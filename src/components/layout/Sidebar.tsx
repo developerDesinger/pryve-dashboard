@@ -2,10 +2,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import sidebarData from "@/data/sidebar.json";
+import { useAuth } from "@/contexts/AuthContext";
+// import sidebarData from "@/data/sidebar.json"; // Removed mock data
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { logout } = useAuth();
+  
   const isActive = (href: string) => {
     if (href === "/dashboard") {
       return pathname === href; // only exact match for Dashboard
@@ -73,17 +76,41 @@ export function Sidebar() {
         }
       }}>
         <SectionHeader title="Main" />
-        {sidebarData.main.map((item) => {
-          const active = isActive(item.href);
-          return <NavItem key={item.href} item={item} active={active} />;
-        })}
+        <NavItem item={{ href: "/dashboard", label: "Dashboard", icon: "/icons/Unselect-side/home.svg" }} active={isActive("/dashboard")} />
+        <NavItem item={{ href: "/dashboard/users", label: "Users", icon: "/icons/Unselect-side/users.svg" }} active={isActive("/dashboard/users")} />
+        <NavItem item={{ href: "/dashboard/analytics", label: "Analytics", icon: "/icons/Unselect-side/analytics.svg" }} active={isActive("/dashboard/analytics")} />
+        <NavItem item={{ href: "/dashboard/memory", label: "Memory", icon: "/icons/Unselect-side/memory.svg" }} active={isActive("/dashboard/memory")} />
+        <NavItem item={{ href: "/dashboard/tone", label: "Tone", icon: "/icons/Unselect-side/Tone.svg" }} active={isActive("/dashboard/tone")} />
+        <NavItem item={{ href: "/dashboard/prompts", label: "Prompts", icon: "/icons/Unselect-side/prompts.svg" }} active={isActive("/dashboard/prompts")} />
+        <NavItem item={{ href: "/dashboard/flows", label: "Flows", icon: "/icons/Unselect-side/chat-flow.svg" }} active={isActive("/dashboard/flows")} />
+        <NavItem item={{ href: "/dashboard/payments", label: "Payments", icon: "/icons/Unselect-side/payments.svg" }} active={isActive("/dashboard/payments")} />
         
         <SectionHeader title="Other" />
-        {sidebarData.other.map((item) => {
-          const active = isActive(item.href);
-          return <NavItem key={item.href} item={item} active={active} />;
-        })}
+        <NavItem item={{ href: "/dashboard/settings", label: "Settings", icon: "/icons/Unselect-side/settings.svg" }} active={isActive("/dashboard/settings")} />
       </nav>
+      
+      {/* Logout Section */}
+      <div className="mt-auto pt-4 border-t border-border">
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 px-3 py-2 rounded-r-[10px] text-[14px] text-foreground hover:bg-accent transition-colors w-full text-left"
+        >
+          <svg 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            className="w-4 h-4"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16,17 21,12 16,7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span className="font-medium">Logout</span>
+        </button>
+      </div>
     </aside>
   );
 }

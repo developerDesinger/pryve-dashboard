@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import activity from "@/data/activity.json";
+// import activity from "@/data/activity.json"; // Removed mock data
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -22,7 +22,12 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, 
 type ActivityPoint = { label: string; users: number; messages: number };
 type Period = "Daily" | "Weekly" | "Monthly";
 
-const DATASETS: Record<Period, ActivityPoint[]> = activity.periods as any;
+// Mock data structure for chart - will be replaced with API data
+const DATASETS: Record<Period, ActivityPoint[]> = {
+  Daily: [],
+  Weekly: [],
+  Monthly: []
+};
 
 // Safe gradient factory to avoid SSR/initial layout issues
 function makeVerticalGradient(from: string, to: string) {

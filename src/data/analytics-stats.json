@@ -1,8 +1,0 @@
-[
-  { "id": "avg-length", "title": "Avg. Message Length", "value": "47.3", "iconSrc": "/icons/Users/Icon.svg", "iconBg": "#eef5ff" },
-  { "id": "dau", "title": "Daily Active Users", "value": "12", "iconSrc": "/icons/Users/crown.svg", "iconBg": "#ecfdf5" },
-  { "id": "dropoff", "title": "Drop-off Rate", "value": "12.4%", "iconSrc": "/icons/Users/flash.svg", "iconBg": "#eef5ff" },
-  { "id": "retention", "title": "User Retention", "value": "68.2%", "iconSrc": "/icons/Users/Icon (1).svg", "iconBg": "#fee2e2" }
-]
-
-

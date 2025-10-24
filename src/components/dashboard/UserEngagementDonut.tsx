@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { Card } from "@/components/ui/card";
-import engagement from "@/data/engagement.json";
+// import engagement from "@/data/engagement.json"; // Removed mock data
 import { Doughnut } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -19,7 +19,7 @@ type Props = {
   inactive?: number;
 };
 
-export default function UserEngagementDonut({ active = engagement.active, inactive = engagement.inactive }: Props) {
+export default function UserEngagementDonut({ active = 0, inactive = 0 }: Props) {
   const data: ChartData<'doughnut', number[], string> = {
     labels: ["Active Users", "Inactive Users"],
     datasets: [

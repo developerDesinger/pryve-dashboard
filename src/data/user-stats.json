@@ -1,8 +1,0 @@
-[
-  { "id": "total", "title": "Total Users", "value": "1,247", "iconSrc": "/icons/Users/Icon.svg", "iconBg": "#eef5ff" },
-  { "id": "premium", "title": "Premium Users", "value": "135", "iconSrc": "/icons/Users/crown.svg", "iconBg": "#ecfdf5" },
-  { "id": "active", "title": "Active Users", "value": "24", "iconSrc": "/icons/Users/flash.svg", "iconBg": "#eef5ff" },
-  { "id": "suspended", "title": "Suspended", "value": "0", "iconSrc": "/icons/Users/Icon (1).svg", "iconBg": "#fee2e2" }
-]
-
-

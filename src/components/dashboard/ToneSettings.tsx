@@ -1,21 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useToneProfileForm } from "@/contexts/ToneProfileFormContext";
 
 export default function ToneSettings() {
-  const [maxWordCount, setMaxWordCount] = useState("150");
-  const [responseStyle, setResponseStyle] = useState("Conversational");
-  const [bannedWords, setBannedWords] = useState(["Harmful", "Illegal", "Offensive"]);
+  const { formData, updateFormData } = useToneProfileForm();
 
   const removeBannedWord = (wordToRemove: string) => {
-    setBannedWords(prev => prev.filter(word => word !== wordToRemove));
+    updateFormData({ 
+      bannedWords: formData.bannedWords.filter(word => word !== wordToRemove) 
+    });
   };
 
   const addBannedWord = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && e.currentTarget.value.trim()) {
       const newWord = e.currentTarget.value.trim();
-      if (!bannedWords.includes(newWord)) {
-        setBannedWords(prev => [...prev, newWord]);
+      if (!formData.bannedWords.includes(newWord)) {
+        updateFormData({ 
+          bannedWords: [...formData.bannedWords, newWord] 
+        });
         e.currentTarget.value = '';
       }
     }
@@ -39,8 +41,8 @@ export default function ToneSettings() {
             </label>
             <input
               type="number"
-              value={maxWordCount}
-              onChange={(e) => setMaxWordCount(e.target.value)}
+              value={formData.maxWordCount}
+              onChange={(e) => updateFormData({ maxWordCount: e.target.value })}
               className="w-full h-10 sm:h-12 px-3 sm:px-4 bg-white border border-gray-200 rounded-xl text-[14px] sm:text-[16px] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
               placeholder="150"
             />
@@ -53,8 +55,8 @@ export default function ToneSettings() {
             </label>
             <div className="relative">
               <select
-                value={responseStyle}
-                onChange={(e) => setResponseStyle(e.target.value)}
+                value={formData.responseStyle}
+                onChange={(e) => updateFormData({ responseStyle: e.target.value })}
                 className="w-full h-10 sm:h-12 px-3 sm:px-4 bg-white border border-gray-200 rounded-xl text-[14px] sm:text-[16px] focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent appearance-none cursor-pointer pr-8 sm:pr-10"
               >
                 <option value="Conversational">Conversational</option>
@@ -80,7 +82,7 @@ export default function ToneSettings() {
           <div className="min-h-[100px] sm:min-h-[120px] p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-200">
             {/* Banned Words Tags */}
             <div className="flex flex-wrap gap-1 sm:gap-2 mb-3">
-              {bannedWords.map((word, index) => (
+              {formData.bannedWords.map((word, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-red-100 text-red-800 rounded-full text-[12px] sm:text-[14px] font-medium"

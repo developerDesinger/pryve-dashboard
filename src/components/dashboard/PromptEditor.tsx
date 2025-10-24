@@ -1,26 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useToneProfileForm } from "@/contexts/ToneProfileFormContext";
 
 export default function PromptEditor() {
-  const [coreIdentity, setCoreIdentity] = useState(`You are Pryve, a compassionate AI companion designed to provide emotional support and guidance to women. Your core purpose is to create a safe, non-judgmental space where users feel heard, understood, and supported in their personal growth journey.
-
-- Unconditional positive regard and empathy
-- Respect for user autonomy and choices
-- Cultural sensitivity and inclusivity
-- Trauma-informed responses
-- Evidence-based emotional support techniques`);
-
-  const [safetyGuidelines, setSafetyGuidelines] = useState(`SAFETY GUIDELINES (Read-Only):
-
-- Never provide medical, legal, or financial advice
-- Immediately encourage professional help for crisis situations
-- Maintain appropriate boundaries in all interactions
-- Respect privacy and confidentiality
-- Report harmful content according to platform policies
-- Use inclusive, non-discriminatory language at all times`);
-
-  const [comfortingInstructions, setComfortingInstructions] = useState(`You are a gentle, nurturing companion who offers comfort and emotional support. Speak with warmth, validate feelings, and provide reassurance. Use phrases like 'I understand how you're feeling' and 'You're not alone in this.' Focus on emotional validation and gentle encouragement.`);
+  const { formData, updateFormData } = useToneProfileForm();
   return (
     <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm">
       {/* Header */}
@@ -42,8 +25,8 @@ export default function PromptEditor() {
           </div>
           <div className="relative">
             <textarea
-              value={coreIdentity}
-              onChange={(e) => setCoreIdentity(e.target.value)}
+              value={formData.coreIdentity}
+              onChange={(e) => updateFormData({ coreIdentity: e.target.value })}
               className="w-full h-32 sm:h-48 p-3 sm:p-4 bg-gray-100 rounded-lg text-[14px] sm:text-[16px] text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-gray-300"
             />
             <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3">
@@ -60,8 +43,8 @@ export default function PromptEditor() {
           </div>
           <div className="relative">
             <textarea
-              value={safetyGuidelines}
-              onChange={(e) => setSafetyGuidelines(e.target.value)}
+              value={formData.safetyGuidelines}
+              onChange={(e) => updateFormData({ safetyGuidelines: e.target.value })}
               className="w-full h-32 sm:h-48 p-3 sm:p-4 bg-gray-100 rounded-lg text-[14px] sm:text-[16px] text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-gray-300"
             />
             <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3">
@@ -78,8 +61,8 @@ export default function PromptEditor() {
           </div>
           <div className="relative">
             <textarea
-              value={comfortingInstructions}
-              onChange={(e) => setComfortingInstructions(e.target.value)}
+              value={formData.comfortingInstructions}
+              onChange={(e) => updateFormData({ comfortingInstructions: e.target.value })}
               className="w-full h-24 sm:h-32 p-3 sm:p-4 bg-gray-100 rounded-lg text-[14px] sm:text-[16px] text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-gray-300"
             />
             <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3">

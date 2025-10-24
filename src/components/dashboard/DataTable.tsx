@@ -9,14 +9,22 @@ export type Column<T> = {
   render?: (row: T, index: number) => React.ReactNode;
 };
 
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  limit: number;
+}
+
 export default function DataTable<T extends { id: string | number }>({
   title,
   columns,
   data,
   rightSlot,
   selectable = true,
-  page = 1,
-  totalPages = 25,
+  pagination,
+  onPageChange,
+  onLimitChange,
   bodyMaxHeight = 520,
 }: {
   title: string;
@@ -24,8 +32,9 @@ export default function DataTable<T extends { id: string | number }>({
   data: T[];
   rightSlot?: React.ReactNode;
   selectable?: boolean;
-  page?: number;
-  totalPages?: number;
+  pagination?: PaginationInfo;
+  onPageChange?: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
   bodyMaxHeight?: number;
 }) {
   return (
@@ -66,31 +75,53 @@ export default function DataTable<T extends { id: string | number }>({
           </tbody>
         </table>
       </div>
-      <div className="px-2 sm:px-4 py-3 border-t border-border text-[12px] sm:text-[14px] text-foreground bg-white rounded-b-2xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <span className="text-muted-foreground text-[10px] sm:text-[12px]">Rows per page</span>
-          <select defaultValue="50" className="h-8 sm:h-9 rounded-xl border border-border bg-white px-2 sm:px-3 text-[10px] sm:text-[12px]">
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap sm:justify-end">
-          <div className="flex items-center gap-1 sm:gap-2">
-            <span className="text-foreground text-[10px] sm:text-[12px]">Go To Page</span>
-            <input defaultValue={page} className="h-8 sm:h-9 w-10 sm:w-12 text-center rounded-xl border border-border bg-white text-[10px] sm:text-[12px]" />
-            <span className="text-muted-foreground text-[10px] sm:text-[12px]">of {totalPages}</span>
+      {pagination && (
+        <div className="px-2 sm:px-4 py-3 border-t border-border text-[12px] sm:text-[14px] text-foreground bg-white rounded-b-2xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <span className="text-muted-foreground text-[10px] sm:text-[12px]">
+              Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to {Math.min(pagination.currentPage * pagination.limit, pagination.totalItems)} of {pagination.totalItems} results
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground text-[10px] sm:text-[12px]">Rows per page</span>
+              <select 
+                value={pagination.limit} 
+                onChange={(e) => onLimitChange?.(Number(e.target.value))}
+                className="h-8 sm:h-9 rounded-xl border border-border bg-white px-2 sm:px-3 text-[10px] sm:text-[12px]"
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+            </div>
           </div>
-          <div className="hidden sm:block w-px h-6 bg-border" />
-          <div className="inline-flex gap-2 w-full sm:w-auto">
-            <button className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl border border-border bg-white text-foreground/80 cursor-not-allowed w-full sm:w-auto text-[10px] sm:text-[12px]" disabled>
-              Previous
-            </button>
-            <button className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl bg-[#757575] text-white hover:brightness-95 cursor-pointer w-full sm:w-auto text-[10px] sm:text-[12px]">Next</button>
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap sm:justify-end">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <span className="text-foreground text-[10px] sm:text-[12px]">Page</span>
+              <span className="text-muted-foreground text-[10px] sm:text-[12px]">
+                {pagination.currentPage} of {pagination.totalPages}
+              </span>
+            </div>
+            <div className="hidden sm:block w-px h-6 bg-border" />
+            <div className="inline-flex gap-2 w-full sm:w-auto">
+              <button 
+                onClick={() => onPageChange?.(pagination.currentPage - 1)}
+                disabled={pagination.currentPage <= 1}
+                className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl border border-border bg-white text-foreground/80 disabled:cursor-not-allowed disabled:opacity-50 hover:enabled:bg-accent w-full sm:w-auto text-[10px] sm:text-[12px]"
+              >
+                Previous
+              </button>
+              <button 
+                onClick={() => onPageChange?.(pagination.currentPage + 1)}
+                disabled={pagination.currentPage >= pagination.totalPages}
+                className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl bg-[#757575] text-white hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 w-full sm:w-auto text-[10px] sm:text-[12px]"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </Card>
   );
 }

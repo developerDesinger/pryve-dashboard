@@ -1,8 +1,8 @@
 "use client";
 
 import UserStatMiniCard from "@/components/dashboard/UserStatMiniCard";
-import paymentStats from "@/data/payment-stats.json";
-import { payments } from "@/data/payments";
+// import paymentStats from "@/data/payment-stats.json"; // Removed mock data
+// import { payments } from "@/data/payments"; // Removed mock data
 import EditPricingModal from "@/components/dashboard/EditPricingModal";
 import { useState } from "react";
 
@@ -22,11 +22,8 @@ export default function PaymentsPage() {
   };
 
   const handleSelectAll = () => {
-    if (selectedPayments.length === payments.length) {
-      setSelectedPayments([]);
-    } else {
-      setSelectedPayments(payments.map(payment => payment.id));
-    }
+    // Handle select all when payments data is available from API
+    setSelectedPayments([]);
   };
 
   const getStatusColor = (status: string) => {
@@ -75,16 +72,16 @@ export default function PaymentsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {paymentStats.map((stat) => (
-          <UserStatMiniCard
-            key={stat.id}
-            id={stat.id}
-            title={stat.title}
-            value={stat.value}
-            iconSrc={stat.iconSrc}
-            iconBg={stat.iconBg}
-          />
-        ))}
+        {/* Payment stats will be populated from API data */}
+        <div className="text-center py-8 col-span-full">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <svg width="24" height="24" className="text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No payment stats available</h3>
+          <p className="text-gray-500">Payment statistics will be loaded from API</p>
+        </div>
       </div>
 
       {/* Payment Table */}
@@ -123,7 +120,7 @@ export default function PaymentsPage() {
                 <th className="text-left py-3 px-4 w-12">
                   <input
                     type="checkbox"
-                    checked={selectedPayments.length === payments.length}
+                    checked={false}
                     onChange={handleSelectAll}
                     className="w-4 h-4 text-gray-600 bg-gray-100 border-gray-300 rounded focus:ring-gray-500 cursor-pointer accent-gray-600"
                   />
@@ -138,49 +135,18 @@ export default function PaymentsPage() {
               </tr>
             </thead>
             <tbody>
-              {payments.map((payment) => (
-                <tr key={payment.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedPayments.includes(payment.id)}
-                      onChange={() => handleSelectPayment(payment.id)}
-                      className="w-4 h-4 text-gray-600 bg-gray-100 border-gray-300 rounded focus:ring-gray-500 cursor-pointer accent-gray-600"
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src={payment.user.avatar} 
-                        alt={payment.user.name}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                      <span className="text-[12px] sm:text-[14px] text-gray-900 font-medium">{payment.user.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-[12px] sm:text-[14px] text-gray-700">{payment.plan}</td>
-                  <td className="py-3 px-4 text-[12px] sm:text-[14px] text-gray-700 font-medium">{payment.amount}</td>
-                  <td className="py-3 px-4">
-                    <span className={`inline-flex px-2 py-1 rounded-full text-[10px] sm:text-[12px] font-medium ${getStatusColor(payment.status)}`}>
-                      {payment.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-[12px] sm:text-[14px] text-gray-700">{payment.paymentDate}</td>
-                  <td className="py-3 px-4 text-[12px] sm:text-[14px] text-gray-700">{payment.nextBilling}</td>
-                  <td className="py-3 px-4">
-                    <button 
-                      onClick={() => setIsModalOpen(true)}
-                      className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="5" r="2" fill="currentColor"/>
-                        <circle cx="12" cy="12" r="2" fill="currentColor"/>
-                        <circle cx="12" cy="19" r="2" fill="currentColor"/>
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {/* Payment data will be populated from API */}
+              <tr>
+                <td colSpan={8} className="py-12 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg width="24" height="24" className="text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No payment data available</h3>
+                  <p className="text-gray-500">Payment information will be loaded from API</p>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

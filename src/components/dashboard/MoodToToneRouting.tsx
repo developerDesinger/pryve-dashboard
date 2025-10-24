@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useToneProfileForm } from "@/contexts/ToneProfileFormContext";
 
 interface MoodToneRule {
   id: string;
@@ -8,15 +8,6 @@ interface MoodToneRule {
   tone: string;
   priority: number;
 }
-
-const initialRules: MoodToneRule[] = [
-  { id: "1", mood: "Anxious", tone: "Comforting", priority: 1 },
-  { id: "2", mood: "Confused", tone: "Grounded", priority: 2 },
-  { id: "3", mood: "Sad", tone: "Comforting", priority: 3 },
-  { id: "4", mood: "Excited", tone: "Playful", priority: 4 },
-  { id: "5", mood: "Frustrated", tone: "Direct", priority: 5 },
-  { id: "6", mood: "Overwhelmed", tone: "Grounded", priority: 6 },
-];
 
 const moodOptions = [
   "Anxious", "Confused", "Sad", "Excited", "Frustrated", "Overwhelmed",
@@ -28,26 +19,32 @@ const toneOptions = [
 ];
 
 export default function MoodToToneRouting() {
-  const [rules, setRules] = useState<MoodToneRule[]>(initialRules);
+  const { formData, updateFormData } = useToneProfileForm();
 
   const addRule = () => {
     const newRule: MoodToneRule = {
       id: Date.now().toString(),
       mood: "Anxious",
       tone: "Comforting",
-      priority: rules.length + 1,
+      priority: formData.moodToToneRules.length + 1,
     };
-    setRules(prev => [...prev, newRule]);
+    updateFormData({ 
+      moodToToneRules: [...formData.moodToToneRules, newRule] 
+    });
   };
 
   const deleteRule = (id: string) => {
-    setRules(prev => prev.filter(rule => rule.id !== id));
+    updateFormData({ 
+      moodToToneRules: formData.moodToToneRules.filter(rule => rule.id !== id) 
+    });
   };
 
   const updateRule = (id: string, field: keyof MoodToneRule, value: string | number) => {
-    setRules(prev => prev.map(rule => 
-      rule.id === id ? { ...rule, [field]: value } : rule
-    ));
+    updateFormData({ 
+      moodToToneRules: formData.moodToToneRules.map(rule => 
+        rule.id === id ? { ...rule, [field]: value } : rule
+      ) 
+    });
   };
 
   return (
@@ -71,7 +68,8 @@ export default function MoodToToneRouting() {
 
       {/* Rules List */}
       <div className="space-y-2 sm:space-y-3">
-        {rules.map((rule) => (
+        {formData.moodToToneRules.length > 0 ? (
+          formData.moodToToneRules.map((rule) => (
           <div key={rule.id} className="bg-gray-100 rounded-xl p-3 sm:p-4">
             <div className="flex flex-col sm:flex-row sm:items-center w-full gap-2 sm:gap-4">
               {/* If mood is */}
@@ -139,7 +137,24 @@ export default function MoodToToneRouting() {
               </button>
             </div>
           </div>
-        ))}
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <svg width="24" height="24" className="text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No mood-to-tone rules</h3>
+            <p className="text-gray-500 mb-4">Create rules to automatically route user moods to specific tones</p>
+            <button
+              onClick={addRule}
+              className="px-4 py-2 bg-[#757575] text-white rounded-lg text-sm font-medium hover:brightness-95 transition-colors"
+            >
+              Create First Rule
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
