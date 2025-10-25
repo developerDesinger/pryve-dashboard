@@ -36,6 +36,13 @@ interface UserProfile {
   phoneNumber?: string;
   bio?: string;
   isVerified: boolean;
+  // Prompt and Fallback Message fields
+  systemPrompt?: string;
+  systemPromptActive?: boolean;
+  contextNeededMessage?: string;
+  contextNeededActive?: boolean;
+  technicalErrorMessage?: string;
+  technicalErrorActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -99,11 +106,11 @@ class AuthAPI {
     try {
       const url = `${this.baseURL}${endpoint}`;
       const config: RequestInit = {
+        ...options,
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
         },
-        ...options,
       };
 
       const response = await fetch(url, config);
@@ -222,18 +229,18 @@ class AuthAPI {
     });
   }
 
-  // Update profile (authenticated)
-  async updateProfile(
+  // Update user (authenticated)
+  async updateUser(
     token: string,
     userId: string,
-    profileData: Partial<UserProfile>
+    userData: Partial<UserProfile>
   ): Promise<ApiResponse<UserProfile>> {
-    return this.request<UserProfile>(`${API_CONFIG.ENDPOINTS.UPDATE_PROFILE}/${userId}`, {
+    return this.request<UserProfile>(`${API_CONFIG.ENDPOINTS.UPDATE_USER}/${userId}`, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(profileData),
+      body: JSON.stringify(userData),
     });
   }
 
