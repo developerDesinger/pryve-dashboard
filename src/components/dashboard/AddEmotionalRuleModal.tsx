@@ -16,21 +16,40 @@ interface AddEmotionalRuleModalProps {
 export default function AddEmotionalRuleModal({ isOpen, onClose, onSave }: AddEmotionalRuleModalProps) {
   const [formData, setFormData] = useState({
     trigger: "",
-    responseType: "Soft comfort tone",
-    tone: "Calm & reassuring",
-    description: "When users experience feelings of anxiety, it is essential to provide a response that is both calm and supportive. This approach not only helps to alleviate their concerns but also fosters a sense of trust and safety. By acknowledging their feelings and offering reassurance, you can create a more positive interaction that encourages users to engage further."
+    responseType: "",
+    tone: "",
+    description: ""
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate all fields before submitting
+    if (!formData.trigger.trim()) {
+      alert('Please enter a trigger');
+      return;
+    }
+    if (!formData.responseType.trim()) {
+      alert('Please enter a response type');
+      return;
+    }
+    if (!formData.tone.trim()) {
+      alert('Please enter a tone');
+      return;
+    }
+    if (!formData.description.trim()) {
+      alert('Please enter a description');
+      return;
+    }
+    
     onSave(formData);
     onClose();
     // Reset form
     setFormData({
       trigger: "",
-      responseType: "Soft comfort tone",
-      tone: "Calm & reassuring",
-      description: "When users experience feelings of anxiety, it is essential to provide a response that is both calm and supportive. This approach not only helps to alleviate their concerns but also fosters a sense of trust and safety. By acknowledging their feelings and offering reassurance, you can create a more positive interaction that encourages users to engage further."
+      responseType: "",
+      tone: "",
+      description: ""
     });
   };
 
