@@ -10,7 +10,7 @@ export default function PromptsPage() {
       <div>
         <h1 className="text-[24px] leading-9 font-bold text-[#242424]">Prompts & Personality</h1>
         <p className="mt-1 text-[16px] leading-6 text-muted-foreground">
-          Configure AI behavior, responses, and emotional intelligence
+        Configure AI behavior, responses, and emotional intelligence
         </p>
       </div>
 

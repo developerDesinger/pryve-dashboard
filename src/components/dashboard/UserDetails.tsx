@@ -34,6 +34,17 @@ interface UserDetailsProps {
 
 export default function UserDetails({ user, categories, memories, treasuredMemories }: UserDetailsProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const colorClasses = [
+    "bg-indigo-100 text-indigo-700",
+    "bg-emerald-100 text-emerald-700",
+    "bg-amber-100 text-amber-700",
+    "bg-sky-100 text-sky-700",
+    "bg-rose-100 text-rose-700",
+    "bg-violet-100 text-violet-700",
+  ];
+  const getInitial = (name: string) => (name?.trim()?.charAt(0)?.toUpperCase() || "U");
+  const getColorForName = (name: string) => colorClasses[(name?.charCodeAt(0) || 0) % colorClasses.length];
+  const shouldShowInitial = (avatar?: string) => !avatar || avatar.includes('default-profile.png');
 
   return (
     <div className="space-y-6">
@@ -41,11 +52,17 @@ export default function UserDetails({ user, categories, memories, treasuredMemor
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div>
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className="w-12 h-12 rounded-full"
-            />
+            {!shouldShowInitial(user.avatar) ? (
+              <img
+                src={user.avatar}
+                alt={user.name}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+            ) : (
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold ${getColorForName(user.name)}`}>
+                {getInitial(user.name)}
+              </div>
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2">

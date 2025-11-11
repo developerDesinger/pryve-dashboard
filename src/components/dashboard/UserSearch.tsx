@@ -22,6 +22,19 @@ interface UserSearchProps {
 export default function UserSearch({ users, selectedUserId, onUserSelect }: UserSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
+  const colorClasses = [
+    "bg-indigo-100 text-indigo-700",
+    "bg-emerald-100 text-emerald-700",
+    "bg-amber-100 text-amber-700",
+    "bg-sky-100 text-sky-700",
+    "bg-rose-100 text-rose-700",
+    "bg-violet-100 text-violet-700",
+  ];
+
+  const getInitial = (name: string) => (name?.trim()?.charAt(0)?.toUpperCase() || "U");
+  const getColorForName = (name: string) => colorClasses[(name?.charCodeAt(0) || 0) % colorClasses.length];
+  const shouldShowInitial = (avatar?: string) => !avatar || avatar.includes('default-profile.png');
+
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -73,11 +86,19 @@ export default function UserSearch({ users, selectedUserId, onUserSelect }: User
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                 <div className="flex-shrink-0">
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full"
-                  />
+                  {!shouldShowInitial(user.avatar) ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-semibold ${getColorForName(user.name)}`}
+                    >
+                      {getInitial(user.name)}
+                    </div>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1 sm:gap-2">

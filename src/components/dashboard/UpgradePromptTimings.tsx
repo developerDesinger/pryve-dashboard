@@ -1,22 +1,63 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ChatSettings } from "@/lib/api/chatSettings";
 
-export default function UpgradePromptTimings() {
-  const [selectedTiming, setSelectedTiming] = useState("immediate");
+interface UpgradePromptTimingsProps {
+  settings: ChatSettings | null;
+  onUpdate: (updates: Partial<ChatSettings>) => void;
+  onSave: (updates: Partial<ChatSettings>) => Promise<boolean>;
+  saving?: boolean;
+}
+
+export default function UpgradePromptTimings({ settings, onUpdate, onSave, saving = false }: UpgradePromptTimingsProps) {
+  const [showPromptOnLimit, setShowPromptOnLimit] = useState(false);
+  const [showPromptAfterGrace, setShowPromptAfterGrace] = useState(false);
+  const [showPromptOnReturn, setShowPromptOnReturn] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      setShowPromptOnLimit(settings.showPromptOnLimit ?? true);
+      setShowPromptAfterGrace(settings.showPromptAfterGrace ?? false);
+      setShowPromptOnReturn(settings.showPromptOnReturn ?? false);
+    }
+  }, [settings]);
+
+  const handleTimingChange = async (timing: "immediate" | "grace-period" | "next-session") => {
+    // Only one can be true at a time
+    const updates = {
+      showPromptOnLimit: timing === "immediate",
+      showPromptAfterGrace: timing === "grace-period",
+      showPromptOnReturn: timing === "next-session",
+    };
+
+    setShowPromptOnLimit(updates.showPromptOnLimit);
+    setShowPromptAfterGrace(updates.showPromptAfterGrace);
+    setShowPromptOnReturn(updates.showPromptOnReturn);
+
+    onUpdate(updates);
+    await onSave(updates);
+  };
+
+  const getSelectedTiming = () => {
+    if (showPromptOnLimit) return "immediate";
+    if (showPromptAfterGrace) return "grace-period";
+    if (showPromptOnReturn) return "next-session";
+    return undefined;
+  };
 
   const timingOptions = [
     {
-      id: "immediate",
+      id: "immediate" as const,
       title: "Show upgrade prompt immediately when limit is reached.",
     },
     {
-      id: "grace-period",
+      id: "grace-period" as const,
       title: "Show upgrade prompt after grace period messages are used.",
     },
     {
-      id: "next-session",
+      id: "next-session" as const,
       title: "Show upgrade prompt when user returns after hitting limit.",
     },
   ];
@@ -39,18 +80,18 @@ export default function UpgradePromptTimings() {
           {timingOptions.map((option) => (
             <div
               key={option.id}
-              className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors"
-              onClick={() => setSelectedTiming(option.id)}
+              className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => !saving && handleTimingChange(option.id)}
             >
               <div className="flex items-center justify-center w-5 h-5">
                 <div
                   className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                    selectedTiming === option.id
+                    getSelectedTiming() === option.id
                       ? "border-[#757575] bg-[#757575]"
                       : "border-gray-300 bg-white"
                   }`}
                 >
-                  {selectedTiming === option.id && (
+                  {getSelectedTiming() === option.id && (
                     <svg
                       className="w-2.5 h-2.5 text-white"
                       fill="currentColor"

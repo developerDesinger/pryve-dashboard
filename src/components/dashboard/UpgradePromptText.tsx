@@ -3,14 +3,42 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ChatSettings } from "@/lib/api/chatSettings";
 
-export default function UpgradePromptText() {
-  const [promptText, setPromptText] = useState(`You've used all your free messages for today! 💜
-To continue our meaningful conversations and unlock unlimited messaging,
-premium memories, and deeper insights, upgrade to Pryve Premium for just
-$5.99/month.
-He remembers you. But only if you let him stay close.`);
+interface UpgradePromptTextProps {
+  settings: ChatSettings | null;
+  onUpdate: (updates: Partial<ChatSettings>) => void;
+  onSave: (updates: Partial<ChatSettings>) => Promise<boolean>;
+  saving?: boolean;
+}
+
+export default function UpgradePromptText({ settings, onUpdate, onSave, saving = false }: UpgradePromptTextProps) {
+  const [promptText, setPromptText] = useState("");
+  const [initialValue, setInitialValue] = useState<string>("");
+
+  useEffect(() => {
+    if (settings) {
+      const value = settings.upgradePromptText || "";
+      setPromptText(value);
+      setInitialValue(value);
+    }
+  }, [settings]);
+
+  // Check if there are changes by comparing current value with initial loaded value
+  const hasChanges = promptText !== initialValue;
+
+  const handleSave = async () => {
+    const success = await onSave({ upgradePromptText: promptText });
+    if (success) {
+      // Update initial value to current value after successful save
+      setInitialValue(promptText);
+    }
+  };
+
+  const handleCancel = () => {
+    setPromptText(initialValue);
+  };
 
   return (
     <Card className="rounded-2xl p-6 bg-white dark:bg-white">
@@ -29,9 +57,13 @@ He remembers you. But only if you let him stay close.`);
         <div className="relative">
           <Textarea
             value={promptText}
-            onChange={(e) => setPromptText(e.target.value)}
+            onChange={(e) => {
+              setPromptText(e.target.value);
+              onUpdate({ upgradePromptText: e.target.value });
+            }}
             className="min-h-[120px] resize-none pr-8 text-[14px] leading-relaxed"
             placeholder="Enter your upgrade prompt text..."
+            disabled={saving}
           />
           <div className="absolute bottom-2 right-2 text-gray-400">
             <img src="/icons/Vector.svg" alt="Resize" className="w-4 h-4" />
@@ -39,10 +71,18 @@ He remembers you. But only if you let him stay close.`);
         </div>
         
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <button className="flex-1 bg-[#757575] text-white hover:brightness-95 px-6 py-2 text-[14px] font-bold rounded-lg cursor-pointer">
-            Save Changes
+          <button
+            onClick={handleSave}
+            disabled={saving || !hasChanges}
+            className="flex-1 bg-[#757575] text-white hover:brightness-95 px-6 py-2 text-[14px] font-bold rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? "Saving..." : "Save Changes"}
           </button>
-          <button className="flex-1 bg-gray-100 text-black hover:bg-gray-200 px-6 py-2 text-[14px] font-bold rounded-lg cursor-pointer">
+          <button
+            onClick={handleCancel}
+            disabled={saving || !hasChanges}
+            className="flex-1 bg-gray-100 text-black hover:bg-gray-200 px-6 py-2 text-[14px] font-bold rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Cancel
           </button>
         </div>

@@ -26,6 +26,8 @@ export const API_CONFIG = {
     EMOTIONAL_RULE_BY_ID: '/api/v1/emotional-rules/:id',
     // AI Configuration endpoints
     AI_CONFIG: '/api/v1/ai-config',
+    // Chat Settings endpoints
+    CHAT_SETTINGS: '/api/v1/chat-settings',
   },
   
   // Cookie configuration

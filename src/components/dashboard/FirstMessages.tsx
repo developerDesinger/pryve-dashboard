@@ -2,16 +2,52 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ChatSettings } from "@/lib/api/chatSettings";
 
-export default function FirstMessages() {
-  const [newUserMessage, setNewUserMessage] = useState(
-    `Hello there! 💜 I'm Pryve, your AI companion. This is your safe space to share anything on your mind. I'm here to listen without judgment and support you through whatever you're experiencing. Whether you want to talk through your feelings, celebrate something wonderful, or just need someone to understand you - I'm here. What would you like to share with me today?`
-  );
+interface FirstMessagesProps {
+  settings: ChatSettings | null;
+  onUpdate: (updates: Partial<ChatSettings>) => void;
+  onSave: (updates: Partial<ChatSettings>) => Promise<boolean>;
+  saving?: boolean;
+}
 
-  const [returningUserMessage, setReturningUserMessage] = useState(
-    `Welcome back, beautiful! 👋 I've missed our conversations. How are you feeling today?`
-  );
+export default function FirstMessages({ settings, onUpdate, onSave, saving = false }: FirstMessagesProps) {
+  const [newUserMessage, setNewUserMessage] = useState("");
+  const [returningUserMessage, setReturningUserMessage] = useState("");
+  const [initialNewUser, setInitialNewUser] = useState<string>("");
+  const [initialReturningUser, setInitialReturningUser] = useState<string>("");
+
+  useEffect(() => {
+    if (settings) {
+      const newUser = settings.newUserMessage || "";
+      const returningUser = settings.returningUserMessage || "";
+      setNewUserMessage(newUser);
+      setReturningUserMessage(returningUser);
+      setInitialNewUser(newUser);
+      setInitialReturningUser(returningUser);
+    }
+  }, [settings]);
+
+  // Check if there are changes by comparing current values with initial loaded values
+  const hasChanges = newUserMessage !== initialNewUser || returningUserMessage !== initialReturningUser;
+
+  const handleSave = async () => {
+    const success = await onSave({
+      newUserMessage,
+      returningUserMessage,
+    });
+    if (success) {
+      // Update initial values to current values after successful save
+      setInitialNewUser(newUserMessage);
+      setInitialReturningUser(returningUserMessage);
+    }
+  };
+
+  const handleCancel = () => {
+    setNewUserMessage(initialNewUser);
+    setReturningUserMessage(initialReturningUser);
+  };
 
   return (
     <Card className="rounded-2xl p-6 bg-white dark:bg-white">
@@ -33,9 +69,13 @@ export default function FirstMessages() {
             <div className="relative">
               <Textarea
                 value={newUserMessage}
-                onChange={(e) => setNewUserMessage(e.target.value)}
+                onChange={(e) => {
+                  setNewUserMessage(e.target.value);
+                  onUpdate({ newUserMessage: e.target.value });
+                }}
                 className="min-h-[120px] resize-none pr-8 text-[14px] leading-relaxed bg-gray-50"
                 placeholder="Enter new user greeting message..."
+                disabled={saving}
               />
               <div className="absolute top-2 right-2 text-gray-400">
                 <svg
@@ -65,9 +105,13 @@ export default function FirstMessages() {
             <div className="relative">
               <Textarea
                 value={returningUserMessage}
-                onChange={(e) => setReturningUserMessage(e.target.value)}
+                onChange={(e) => {
+                  setReturningUserMessage(e.target.value);
+                  onUpdate({ returningUserMessage: e.target.value });
+                }}
                 className="min-h-[80px] resize-none pr-8 text-[14px] leading-relaxed bg-gray-50"
                 placeholder="Enter returning user greeting message..."
+                disabled={saving}
               />
               <div className="absolute top-2 right-2 text-gray-400">
                 <svg
@@ -91,6 +135,23 @@ export default function FirstMessages() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4">
+          <button
+            onClick={handleSave}
+            disabled={saving || !hasChanges}
+            className="flex-1 bg-[#757575] text-white hover:brightness-95 px-6 py-2 text-[14px] font-bold rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+          <button
+            onClick={handleCancel}
+            disabled={saving || !hasChanges}
+            className="flex-1 bg-gray-100 text-black hover:bg-gray-200 px-6 py-2 text-[14px] font-bold rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
         </div>
       </CardContent>
     </Card>
