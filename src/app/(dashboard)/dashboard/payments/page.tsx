@@ -1,17 +1,21 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import UserStatMiniCard from "@/components/dashboard/UserStatMiniCard";
-// import paymentStats from "@/data/payment-stats.json"; // Removed mock data
-// import { payments } from "@/data/payments"; // Removed mock data
 import EditPricingModal from "@/components/dashboard/EditPricingModal";
-import { useState } from "react";
+import { paymentsAPI, type Payment, type PaymentStats } from "@/lib/api/payments";
 
 export default function PaymentsPage() {
   const [selectedPayments, setSelectedPayments] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const totalPages = 25;
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [paymentStats, setPaymentStats] = useState<PaymentStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   const handleSelectPayment = (paymentId: string) => {
     setSelectedPayments(prev => 
@@ -21,23 +25,89 @@ export default function PaymentsPage() {
     );
   };
 
+  // Reset to page 1 when itemsPerPage changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
+
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await paymentsAPI.getPayments(currentPage, itemsPerPage);
+        
+        if (response.success && response.data) {
+          // Set payments data
+          setPayments(response.data.data || []);
+          
+          // Set pagination info from meta
+          if (response.data.meta) {
+            setTotalPages(response.data.meta.totalPages || 1);
+            setTotalItems(response.data.meta.total || 0);
+            // Update current page if it exceeds total pages
+            if (currentPage > (response.data.meta.totalPages || 1)) {
+              setCurrentPage(1);
+            }
+          }
+          
+          // Note: Stats are not included in this API response
+          // They would need to come from a separate endpoint
+        } else {
+          setError(response.message || 'Failed to fetch payments');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPayments();
+  }, [currentPage, itemsPerPage]);
+
   const handleSelectAll = () => {
-    // Handle select all when payments data is available from API
-    setSelectedPayments([]);
+    if (selectedPayments.length === payments.length) {
+      setSelectedPayments([]);
+    } else {
+      setSelectedPayments(payments.map(p => p.id));
+    }
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-800";
-      case "Inactive":
-        return "bg-gray-100 text-gray-800";
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+    const statusLower = status?.toLowerCase() || '';
+    if (statusLower.includes('active') || statusLower.includes('success') || statusLower.includes('completed')) {
+      return "bg-green-100 text-green-800";
+    }
+    if (statusLower.includes('pending') || statusLower.includes('processing')) {
+      return "bg-yellow-100 text-yellow-800";
+    }
+    if (statusLower.includes('failed') || statusLower.includes('cancelled') || statusLower.includes('inactive')) {
+      return "bg-red-100 text-red-800";
+    }
+    return "bg-gray-100 text-gray-800";
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return dateString;
     }
   };
+
+  const formatCurrency = (amount?: number, currency: string = 'USD') => {
+    if (amount === undefined || amount === null) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount);
+  };
+
+  // Payments are already paginated from the API
+  const paginatedPayments = payments;
 
   const handleSavePricing = (pricingData: {
     isActive: boolean;
@@ -72,16 +142,58 @@ export default function PaymentsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Payment stats will be populated from API data */}
-        <div className="text-center py-8 col-span-full">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-            <svg width="24" height="24" className="text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+        {loading ? (
+          <div className="text-center py-8 col-span-full">
+            <div className="w-12 h-12 mx-auto mb-4 border-4 border-gray-200 border-t-[#757575] rounded-full animate-spin"></div>
+            <p className="text-gray-500">Loading payment stats...</p>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No payment stats available</h3>
-          <p className="text-gray-500">Payment statistics will be loaded from API</p>
-        </div>
+        ) : error ? (
+          <div className="text-center py-8 col-span-full">
+            <p className="text-red-600 font-medium mb-2">Error loading stats</p>
+            <p className="text-sm text-gray-500">{error}</p>
+          </div>
+        ) : paymentStats ? (
+          <>
+            <UserStatMiniCard
+              id="monthly-revenue"
+              title="Monthly Revenue"
+              value={formatCurrency(paymentStats.monthlyRevenue)}
+              iconSrc="/icons/Payments/Icon (1).svg"
+              iconBg="#eef5ff"
+            />
+            <UserStatMiniCard
+              id="active-subscriptions"
+              title="Active Subscriptions"
+              value={paymentStats.activeSubscriptions ?? 0}
+              iconSrc="/icons/Payments/Icon (2).svg"
+              iconBg="#e9f1ff"
+            />
+            <UserStatMiniCard
+              id="free-users"
+              title="Free Users"
+              value={paymentStats.freeUsers ?? 0}
+              iconSrc="/icons/Payments/Icon (3).svg"
+              iconBg="#eaf8f1"
+            />
+            <UserStatMiniCard
+              id="failed-payments"
+              title="Failed Payments"
+              value={paymentStats.failedPayments ?? 0}
+              iconSrc="/icons/Payments/Icon (4).svg"
+              iconBg="#fee2e2"
+            />
+          </>
+        ) : (
+          <div className="text-center py-8 col-span-full">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <svg width="24" height="24" className="text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No payment stats available</h3>
+            <p className="text-gray-500">Payment statistics will be loaded from API</p>
+          </div>
+        )}
       </div>
 
       {/* Payment Table */}
@@ -120,9 +232,10 @@ export default function PaymentsPage() {
                 <th className="text-left py-3 px-4 w-12">
                   <input
                     type="checkbox"
-                    checked={false}
+                    checked={payments.length > 0 && selectedPayments.length === payments.length}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-gray-600 bg-gray-100 border-gray-300 rounded focus:ring-gray-500 cursor-pointer accent-gray-600"
+                    disabled={loading || payments.length === 0}
+                    className="w-4 h-4 text-gray-600 bg-gray-100 border-gray-300 rounded focus:ring-gray-500 cursor-pointer accent-gray-600 disabled:opacity-50"
                   />
                 </th>
                 <th className="text-left py-3 px-4 font-semibold">User</th>
@@ -135,18 +248,102 @@ export default function PaymentsPage() {
               </tr>
             </thead>
             <tbody>
-              {/* Payment data will be populated from API */}
-              <tr>
-                <td colSpan={8} className="py-12 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                    <svg width="24" height="24" className="text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No payment data available</h3>
-                  <p className="text-gray-500">Payment information will be loaded from API</p>
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center">
+                    <div className="w-12 h-12 mx-auto mb-4 border-4 border-gray-200 border-t-[#757575] rounded-full animate-spin"></div>
+                    <p className="text-gray-500">Loading payments...</p>
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center">
+                    <p className="text-red-600 font-medium mb-2">Error loading payments</p>
+                    <p className="text-sm text-gray-500">{error}</p>
+                  </td>
+                </tr>
+              ) : paginatedPayments.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <svg width="24" height="24" className="text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No payment data available</h3>
+                    <p className="text-gray-500">No payments found</p>
+                  </td>
+                </tr>
+              ) : (
+                paginatedPayments.map((payment) => (
+                  <tr key={payment.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="py-3 px-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedPayments.includes(payment.id)}
+                        onChange={() => handleSelectPayment(payment.id)}
+                        className="w-4 h-4 text-gray-600 bg-gray-100 border-gray-300 rounded focus:ring-gray-500 cursor-pointer accent-gray-600"
+                      />
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        {payment.userAvatar ? (
+                          <img
+                            src={payment.userAvatar}
+                            alt={payment.userName || payment.userEmail || 'User'}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm font-medium">
+                            {(payment.userName || payment.userEmail || 'U').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-[14px] font-medium text-gray-900">
+                            {payment.userName || payment.userEmail || 'Unknown User'}
+                          </div>
+                          {payment.userEmail && payment.userName && (
+                            <div className="text-[12px] text-gray-500">{payment.userEmail}</div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-[14px] text-gray-900">
+                        {payment.planName || payment.plan || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-[14px] font-medium text-gray-900">
+                        {formatCurrency(payment.amount, payment.currency)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-[12px] font-medium ${getStatusColor(payment.status || '')}`}>
+                        {payment.status || 'Unknown'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-[14px] text-gray-600">
+                        {formatDate(payment.paymentDate || payment.createdAt)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-[14px] text-gray-600">
+                        {formatDate(payment.nextBilling || payment.nextBillingDate)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="text-[14px] text-[#757575] hover:text-[#5a5a5a] font-medium cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -165,7 +362,7 @@ export default function PaymentsPage() {
               <option value="50">50</option>
               <option value="100">100</option>
             </select>
-            <span className="text-muted-foreground">/ 50</span>
+            <span className="text-muted-foreground">/ {totalItems}</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-4 flex-wrap sm:justify-end">
             <div className="flex items-center gap-1 sm:gap-2">
@@ -180,12 +377,19 @@ export default function PaymentsPage() {
             <div className="hidden sm:block w-px h-6 bg-gray-200" />
             <div className="inline-flex gap-2 w-full sm:w-auto">
               <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl border border-gray-200 bg-white text-gray-400 cursor-not-allowed w-full sm:w-auto text-[10px] sm:text-[12px] disabled:opacity-50" 
+                className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl border border-gray-200 bg-white text-gray-400 cursor-not-allowed w-full sm:w-auto text-[10px] sm:text-[12px] disabled:opacity-50 disabled:cursor-not-allowed enabled:text-gray-700 enabled:hover:bg-gray-50 enabled:cursor-pointer" 
               >
                 Previous
               </button>
-              <button className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl bg-[#757575] text-white hover:brightness-95 cursor-pointer w-full sm:w-auto text-[10px] sm:text-[12px]">Next</button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage >= totalPages}
+                className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl bg-[#757575] text-white hover:brightness-95 cursor-pointer w-full sm:w-auto text-[10px] sm:text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>

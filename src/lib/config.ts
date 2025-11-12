@@ -28,6 +28,10 @@ export const API_CONFIG = {
     AI_CONFIG: '/api/v1/ai-config',
     // Chat Settings endpoints
     CHAT_SETTINGS: '/api/v1/chat-settings',
+    // Analytics endpoints
+    ANALYTICS_EMOTIONS: '/api/v1/analytics/emotions',
+    // Payments endpoints
+    REVENUECAT_PAYMENTS: '/api/v1/webhooks/revenuecat/admin/payments',
   },
   
   // Cookie configuration
