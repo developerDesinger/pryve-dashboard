@@ -1,5 +1,5 @@
-import { API_CONFIG } from '../config';
-import { cookieUtils } from '../cookies';
+import { API_CONFIG } from "../config";
+import { cookieUtils } from "../cookies";
 
 export interface ChatSettings {
   id?: string;
@@ -42,12 +42,13 @@ class ChatSettingsAPI {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseURL}${endpoint}`;
-      const token = cookieUtils.getAuthToken() || '';
-      
+      const token = cookieUtils.getAuthToken() || "";
+
       const config: RequestInit = {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...API_CONFIG.DEFAULT_HEADERS,
           ...options.headers,
         },
         ...options,
@@ -56,11 +57,12 @@ class ChatSettingsAPI {
       const response = await fetch(url, config);
       const data = await response.json();
 
-      if (data.hasOwnProperty('success')) {
+      if (data.hasOwnProperty("success")) {
         return {
           success: data.success,
-          message: data.message || (data.success ? 'Success' : 'An error occurred'),
-          data: data.success ? data.data as T : undefined,
+          message:
+            data.message || (data.success ? "Success" : "An error occurred"),
+          data: data.success ? (data.data as T) : undefined,
           error: data.error || (!data.success ? data.message : undefined),
         };
       }
@@ -68,21 +70,21 @@ class ChatSettingsAPI {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'An error occurred',
-          error: data.error || 'Unknown error',
+          message: data.message || "An error occurred",
+          error: data.error || "Unknown error",
         };
       }
 
       return {
         success: true,
-        message: data.message || 'Success',
+        message: data.message || "Success",
         data: data.data || data,
       };
     } catch (error) {
       return {
         success: false,
-        message: 'Network error occurred',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: "Network error occurred",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -90,14 +92,16 @@ class ChatSettingsAPI {
   // Get chat settings
   async getChatSettings(): Promise<ApiResponse<ChatSettings>> {
     return this.request<ChatSettings>(API_CONFIG.ENDPOINTS.CHAT_SETTINGS, {
-      method: 'GET',
+      method: "GET",
     });
   }
 
   // Update chat settings
-  async updateChatSettings(settings: UpdateChatSettingsRequest): Promise<ApiResponse<ChatSettings>> {
+  async updateChatSettings(
+    settings: UpdateChatSettingsRequest
+  ): Promise<ApiResponse<ChatSettings>> {
     return this.request<ChatSettings>(API_CONFIG.ENDPOINTS.CHAT_SETTINGS, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify(settings),
     });
   }
@@ -105,4 +109,3 @@ class ChatSettingsAPI {
 
 // Export singleton instance
 export const chatSettingsAPI = new ChatSettingsAPI();
-

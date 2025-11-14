@@ -3,6 +3,10 @@ export const API_CONFIG = {
   // Base URL for the Pryve Auth API
   // Update this with your actual API URL
   BASE_URL: process.env.NEXT_PUBLIC_URL || "http://localhost:3000",
+  // Shared headers for all API requests
+  DEFAULT_HEADERS: {
+    "ngrok-skip-browser-warning": "true",
+  },
 
   // API endpoints
   ENDPOINTS: {

@@ -1,4 +1,4 @@
-import { API_CONFIG, getApiUrl } from '@/lib/config';
+import { API_CONFIG, getApiUrl } from "@/lib/config";
 
 // API Response types
 interface ApiResponse<T = any> {
@@ -108,7 +108,8 @@ class AuthAPI {
       const config: RequestInit = {
         ...options,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          ...API_CONFIG.DEFAULT_HEADERS,
           ...options.headers,
         },
       };
@@ -116,13 +117,13 @@ class AuthAPI {
       const response = await fetch(url, config);
       const data = await response.json();
 
-
       // Check if the response contains success field (API response format)
-      if (data.hasOwnProperty('success')) {
+      if (data.hasOwnProperty("success")) {
         const result = {
           success: data.success,
-          message: data.message || (data.success ? 'Success' : 'An error occurred'),
-          data: data.success ? (data.data || data) as T : undefined,
+          message:
+            data.message || (data.success ? "Success" : "An error occurred"),
+          data: data.success ? ((data.data || data) as T) : undefined,
           error: data.error || (!data.success ? data.message : undefined),
         };
         return result;
@@ -132,29 +133,32 @@ class AuthAPI {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'An error occurred',
-          error: data.error || 'Unknown error',
+          message: data.message || "An error occurred",
+          error: data.error || "Unknown error",
         };
       }
 
       return {
         success: true,
-        message: data.message || 'Success',
+        message: data.message || "Success",
         data: data.data || data,
       };
     } catch (error) {
       return {
         success: false,
-        message: 'Network error occurred',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: "Network error occurred",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
 
   // Login user
-  async login(email: string, password: string): Promise<ApiResponse<LoginResponse>> {
+  async login(
+    email: string,
+    password: string
+  ): Promise<ApiResponse<LoginResponse>> {
     return this.request<LoginResponse>(API_CONFIG.ENDPOINTS.LOGIN, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ email, password }),
     });
   }
@@ -162,7 +166,7 @@ class AuthAPI {
   // Get current user profile
   async getCurrentUser(token: string): Promise<ApiResponse<UserProfile>> {
     return this.request<UserProfile>(API_CONFIG.ENDPOINTS.USER_BY_TOKEN, {
-      method: 'GET',
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -172,7 +176,7 @@ class AuthAPI {
   // Register new user
   async register(email: string, fullName: string): Promise<ApiResponse> {
     return this.request(API_CONFIG.ENDPOINTS.REGISTER, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ email, fullName }),
     });
   }
@@ -180,7 +184,7 @@ class AuthAPI {
   // Verify OTP
   async verifyOTP(email: string, otp: number): Promise<ApiResponse> {
     return this.request(API_CONFIG.ENDPOINTS.VERIFY_OTP, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ email, otp }),
     });
   }
@@ -188,7 +192,7 @@ class AuthAPI {
   // Resend OTP
   async resendOTP(email: string): Promise<ApiResponse> {
     return this.request(API_CONFIG.ENDPOINTS.RESEND_OTP, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ email }),
     });
   }
@@ -196,7 +200,7 @@ class AuthAPI {
   // Forgot password
   async forgotPassword(email: string): Promise<ApiResponse> {
     return this.request(API_CONFIG.ENDPOINTS.FORGOT_PASSWORD, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ email }),
     });
   }
@@ -209,7 +213,7 @@ class AuthAPI {
     newPassword: string
   ): Promise<ApiResponse> {
     return this.request(API_CONFIG.ENDPOINTS.UPDATE_PASSWORD, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ email, userId, otp, newPassword }),
     });
   }
@@ -221,7 +225,7 @@ class AuthAPI {
     newPassword: string
   ): Promise<ApiResponse> {
     return this.request(API_CONFIG.ENDPOINTS.CHANGE_PASSWORD, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -235,13 +239,16 @@ class AuthAPI {
     userId: string,
     userData: Partial<UserProfile>
   ): Promise<ApiResponse<UserProfile>> {
-    return this.request<UserProfile>(`${API_CONFIG.ENDPOINTS.UPDATE_USER}/${userId}`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(userData),
-    });
+    return this.request<UserProfile>(
+      `${API_CONFIG.ENDPOINTS.UPDATE_USER}/${userId}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(userData),
+      }
+    );
   }
 
   // Google social login
@@ -253,12 +260,12 @@ class AuthAPI {
     profilePhoto?: string
   ): Promise<ApiResponse<LoginResponse>> {
     return this.request<LoginResponse>(API_CONFIG.ENDPOINTS.SOCIAL_LOGIN, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({
         email,
-        provider: 'GOOGLE',
+        provider: "GOOGLE",
         providerId,
-        userName: email.split('@')[0],
+        userName: email.split("@")[0],
         firstName,
         lastName,
         profilePhoto,
@@ -268,22 +275,23 @@ class AuthAPI {
 
   // Get all users with pagination
   async getAllUsers(
-    token: string, 
-    page: number = 1, 
+    token: string,
+    page: number = 1,
     limit: number = 10
   ): Promise<ApiResponse<PaginatedUsersResponse>> {
     // Add pagination parameters to the URL
     const url = new URL(`${this.baseURL}${API_CONFIG.ENDPOINTS.GET_ALL_USERS}`);
-    url.searchParams.append('page', page.toString());
-    url.searchParams.append('limit', limit.toString());
+    url.searchParams.append("page", page.toString());
+    url.searchParams.append("limit", limit.toString());
 
     // Make direct API call to get the raw response
     try {
       const response = await fetch(url.toString(), {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...API_CONFIG.DEFAULT_HEADERS,
         },
       });
 
@@ -306,21 +314,21 @@ class AuthAPI {
               activeUsers: 0,
               suspendedUsers: 0,
               premiumUsers: 0,
-            }
-          }
+            },
+          },
         };
       } else {
         return {
           success: false,
-          message: data.message || 'Failed to fetch users',
-          error: data.message || 'Unknown error',
+          message: data.message || "Failed to fetch users",
+          error: data.message || "Unknown error",
         };
       }
     } catch (error) {
       return {
         success: false,
-        message: 'Network error occurred',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: "Network error occurred",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -328,4 +336,12 @@ class AuthAPI {
 
 // Export singleton instance
 export const authAPI = new AuthAPI();
-export type { ApiResponse, LoginResponse, UserProfile, User, PaginationInfo, PaginatedUsersResponse, UserCounts };
+export type {
+  ApiResponse,
+  LoginResponse,
+  UserProfile,
+  User,
+  PaginationInfo,
+  PaginatedUsersResponse,
+  UserCounts,
+};

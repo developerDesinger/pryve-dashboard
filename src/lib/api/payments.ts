@@ -1,5 +1,5 @@
-import { API_CONFIG } from '../config';
-import { cookieUtils } from '../cookies';
+import { API_CONFIG } from "../config";
+import { cookieUtils } from "../cookies";
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -65,12 +65,13 @@ class PaymentsAPI {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseURL}${endpoint}`;
-      const token = cookieUtils.getAuthToken() || '';
-      
+      const token = cookieUtils.getAuthToken() || "";
+
       const config: RequestInit = {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...API_CONFIG.DEFAULT_HEADERS,
           ...options.headers,
         },
         ...options,
@@ -79,11 +80,12 @@ class PaymentsAPI {
       const response = await fetch(url, config);
       const data = await response.json();
 
-      if (data.hasOwnProperty('success')) {
+      if (data.hasOwnProperty("success")) {
         return {
           success: data.success,
-          message: data.message || (data.success ? 'Success' : 'An error occurred'),
-          data: data.success ? data.data as T : undefined,
+          message:
+            data.message || (data.success ? "Success" : "An error occurred"),
+          data: data.success ? (data.data as T) : undefined,
           error: data.error || (!data.success ? data.message : undefined),
         };
       }
@@ -91,34 +93,36 @@ class PaymentsAPI {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'An error occurred',
-          error: data.error || 'Unknown error',
+          message: data.message || "An error occurred",
+          error: data.error || "Unknown error",
         };
       }
 
       return {
         success: true,
-        message: data.message || 'Success',
+        message: data.message || "Success",
         data: data.data || data,
       };
     } catch (error) {
       return {
         success: false,
-        message: 'Network error occurred',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: "Network error occurred",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
 
   // Get payments with pagination
-  async getPayments(page: number = 1, pageSize: number = 50): Promise<ApiResponse<PaymentsResponse>> {
+  async getPayments(
+    page: number = 1,
+    pageSize: number = 50
+  ): Promise<ApiResponse<PaymentsResponse>> {
     const endpoint = `${API_CONFIG.ENDPOINTS.REVENUECAT_PAYMENTS}?page=${page}&pageSize=${pageSize}`;
     return this.request<PaymentsResponse>(endpoint, {
-      method: 'GET',
+      method: "GET",
     });
   }
 }
 
 // Export singleton instance
 export const paymentsAPI = new PaymentsAPI();
-

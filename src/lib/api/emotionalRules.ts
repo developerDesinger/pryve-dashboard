@@ -1,4 +1,4 @@
-import { API_CONFIG, getApiUrl } from '@/lib/config';
+import { API_CONFIG, getApiUrl } from "@/lib/config";
 
 // API Response types
 interface ApiResponse<T = any> {
@@ -49,7 +49,8 @@ class EmotionalRulesAPI {
       const config: RequestInit = {
         ...options,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          ...API_CONFIG.DEFAULT_HEADERS,
           ...options.headers,
         },
       };
@@ -58,11 +59,12 @@ class EmotionalRulesAPI {
       const data = await response.json();
 
       // Check if the response contains success field (API response format)
-      if (data.hasOwnProperty('success')) {
+      if (data.hasOwnProperty("success")) {
         const result = {
           success: data.success,
-          message: data.message || (data.success ? 'Success' : 'An error occurred'),
-          data: data.success ? (data.data || data) as T : undefined,
+          message:
+            data.message || (data.success ? "Success" : "An error occurred"),
+          data: data.success ? ((data.data || data) as T) : undefined,
           error: data.error || (!data.success ? data.message : undefined),
         };
         return result;
@@ -72,21 +74,21 @@ class EmotionalRulesAPI {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'An error occurred',
-          error: data.error || 'Unknown error',
+          message: data.message || "An error occurred",
+          error: data.error || "Unknown error",
         };
       }
 
       return {
         success: true,
-        message: data.message || 'Success',
+        message: data.message || "Success",
         data: data.data || data,
       };
     } catch (error) {
       return {
         success: false,
-        message: 'Network error occurred',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: "Network error occurred",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -98,19 +100,22 @@ class EmotionalRulesAPI {
     limit: number = 10,
     trigger?: string
   ): Promise<ApiResponse<PaginatedEmotionalRulesResponse>> {
-    const url = new URL(`${this.baseURL}${API_CONFIG.ENDPOINTS.EMOTIONAL_RULES}`);
-    url.searchParams.append('page', page.toString());
-    url.searchParams.append('limit', limit.toString());
+    const url = new URL(
+      `${this.baseURL}${API_CONFIG.ENDPOINTS.EMOTIONAL_RULES}`
+    );
+    url.searchParams.append("page", page.toString());
+    url.searchParams.append("limit", limit.toString());
     if (trigger) {
-      url.searchParams.append('trigger', trigger);
+      url.searchParams.append("trigger", trigger);
     }
 
     try {
       const response = await fetch(url.toString(), {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...API_CONFIG.DEFAULT_HEADERS,
         },
       });
 
@@ -127,21 +132,21 @@ class EmotionalRulesAPI {
               totalPages: 1,
               totalItems: data.data.length,
               limit: limit,
-            }
-          }
+            },
+          },
         };
       } else {
         return {
           success: false,
-          message: data.message || 'Failed to fetch emotional rules',
-          error: data.message || 'Unknown error',
+          message: data.message || "Failed to fetch emotional rules",
+          error: data.message || "Unknown error",
         };
       }
     } catch (error) {
       return {
         success: false,
-        message: 'Network error occurred',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: "Network error occurred",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -151,23 +156,28 @@ class EmotionalRulesAPI {
     token: string,
     ruleId: string
   ): Promise<ApiResponse<EmotionalRule>> {
-    return this.request<EmotionalRule>(`${API_CONFIG.ENDPOINTS.EMOTIONAL_RULE_BY_ID.replace(':id', ruleId)}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    return this.request<EmotionalRule>(
+      `${API_CONFIG.ENDPOINTS.EMOTIONAL_RULE_BY_ID.replace(":id", ruleId)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...API_CONFIG.DEFAULT_HEADERS,
+        },
+      }
+    );
   }
 
   // Create new emotional rule
   async createEmotionalRule(
     token: string,
-    ruleData: Omit<EmotionalRule, 'id' | 'createdAt' | 'updatedAt'>
+    ruleData: Omit<EmotionalRule, "id" | "createdAt" | "updatedAt">
   ): Promise<ApiResponse<EmotionalRule>> {
     return this.request<EmotionalRule>(API_CONFIG.ENDPOINTS.EMOTIONAL_RULES, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
+        ...API_CONFIG.DEFAULT_HEADERS,
       },
       body: JSON.stringify(ruleData),
     });
@@ -177,15 +187,19 @@ class EmotionalRulesAPI {
   async updateEmotionalRule(
     token: string,
     ruleId: string,
-    ruleData: Partial<Omit<EmotionalRule, 'id' | 'createdAt' | 'updatedAt'>>
+    ruleData: Partial<Omit<EmotionalRule, "id" | "createdAt" | "updatedAt">>
   ): Promise<ApiResponse<EmotionalRule>> {
-    return this.request<EmotionalRule>(`${API_CONFIG.ENDPOINTS.EMOTIONAL_RULE_BY_ID.replace(':id', ruleId)}`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(ruleData),
-    });
+    return this.request<EmotionalRule>(
+      `${API_CONFIG.ENDPOINTS.EMOTIONAL_RULE_BY_ID.replace(":id", ruleId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...API_CONFIG.DEFAULT_HEADERS,
+        },
+        body: JSON.stringify(ruleData),
+      }
+    );
   }
 
   // Delete emotional rule
@@ -193,12 +207,16 @@ class EmotionalRulesAPI {
     token: string,
     ruleId: string
   ): Promise<ApiResponse<void>> {
-    return this.request<void>(`${API_CONFIG.ENDPOINTS.EMOTIONAL_RULE_BY_ID.replace(':id', ruleId)}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    return this.request<void>(
+      `${API_CONFIG.ENDPOINTS.EMOTIONAL_RULE_BY_ID.replace(":id", ruleId)}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...API_CONFIG.DEFAULT_HEADERS,
+        },
+      }
+    );
   }
 
   // Delete multiple emotional rules
@@ -207,9 +225,10 @@ class EmotionalRulesAPI {
     ruleIds: string[]
   ): Promise<ApiResponse<void>> {
     return this.request<void>(API_CONFIG.ENDPOINTS.EMOTIONAL_RULES, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
+        ...API_CONFIG.DEFAULT_HEADERS,
       },
       body: JSON.stringify({ ruleIds }),
     });
@@ -218,4 +237,9 @@ class EmotionalRulesAPI {
 
 // Export singleton instance
 export const emotionalRulesAPI = new EmotionalRulesAPI();
-export type { ApiResponse, EmotionalRule, PaginationInfo, PaginatedEmotionalRulesResponse };
+export type {
+  ApiResponse,
+  EmotionalRule,
+  PaginationInfo,
+  PaginatedEmotionalRulesResponse,
+};

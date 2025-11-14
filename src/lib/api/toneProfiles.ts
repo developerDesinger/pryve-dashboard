@@ -1,5 +1,5 @@
-import { API_CONFIG } from '../config';
-import { cookieUtils } from '../cookies';
+import { API_CONFIG } from "../config";
+import { cookieUtils } from "../cookies";
 
 export interface ToneProfile {
   id: string;
@@ -43,7 +43,8 @@ export interface CreateToneProfileRequest {
   };
 }
 
-export interface UpdateToneProfileRequest extends Partial<CreateToneProfileRequest> {}
+export interface UpdateToneProfileRequest
+  extends Partial<CreateToneProfileRequest> {}
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -65,13 +66,13 @@ class ToneProfilesAPI {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseURL}${endpoint}`;
-      const token = cookieUtils.getAuthToken() || '';
-      
-      
+      const token = cookieUtils.getAuthToken() || "";
+
       const config: RequestInit = {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...API_CONFIG.DEFAULT_HEADERS,
           ...options.headers,
         },
         ...options,
@@ -80,11 +81,12 @@ class ToneProfilesAPI {
       const response = await fetch(url, config);
       const data = await response.json();
 
-      if (data.hasOwnProperty('success')) {
+      if (data.hasOwnProperty("success")) {
         return {
           success: data.success,
-          message: data.message || (data.success ? 'Success' : 'An error occurred'),
-          data: data.success ? data.data as T : undefined,
+          message:
+            data.message || (data.success ? "Success" : "An error occurred"),
+          data: data.success ? (data.data as T) : undefined,
           error: data.error || (!data.success ? data.message : undefined),
         };
       }
@@ -92,21 +94,21 @@ class ToneProfilesAPI {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'An error occurred',
-          error: data.error || 'Unknown error',
+          message: data.message || "An error occurred",
+          error: data.error || "Unknown error",
         };
       }
 
       return {
         success: true,
-        message: data.message || 'Success',
+        message: data.message || "Success",
         data: data.data || data,
       };
     } catch (error) {
       return {
         success: false,
-        message: 'Network error occurred',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: "Network error occurred",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -114,45 +116,62 @@ class ToneProfilesAPI {
   // Get all tone profiles
   async getAllToneProfiles(): Promise<ApiResponse<ToneProfile[]>> {
     return this.request<ToneProfile[]>(API_CONFIG.ENDPOINTS.TONE_PROFILES, {
-      method: 'GET',
+      method: "GET",
     });
   }
 
   // Get single tone profile
   async getToneProfile(id: string): Promise<ApiResponse<ToneProfile>> {
-    return this.request<ToneProfile>(API_CONFIG.ENDPOINTS.TONE_PROFILE_BY_ID.replace(':id', id), {
-      method: 'GET',
-    });
+    return this.request<ToneProfile>(
+      API_CONFIG.ENDPOINTS.TONE_PROFILE_BY_ID.replace(":id", id),
+      {
+        method: "GET",
+      }
+    );
   }
 
   // Create tone profile
-  async createToneProfile(profile: CreateToneProfileRequest): Promise<ApiResponse<ToneProfile>> {
+  async createToneProfile(
+    profile: CreateToneProfileRequest
+  ): Promise<ApiResponse<ToneProfile>> {
     return this.request<ToneProfile>(API_CONFIG.ENDPOINTS.TONE_PROFILES, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(profile),
     });
   }
 
   // Update tone profile
-  async updateToneProfile(id: string, profile: UpdateToneProfileRequest): Promise<ApiResponse<ToneProfile>> {
-    return this.request<ToneProfile>(API_CONFIG.ENDPOINTS.TONE_PROFILE_BY_ID.replace(':id', id), {
-      method: 'PATCH',
-      body: JSON.stringify(profile),
-    });
+  async updateToneProfile(
+    id: string,
+    profile: UpdateToneProfileRequest
+  ): Promise<ApiResponse<ToneProfile>> {
+    return this.request<ToneProfile>(
+      API_CONFIG.ENDPOINTS.TONE_PROFILE_BY_ID.replace(":id", id),
+      {
+        method: "PATCH",
+        body: JSON.stringify(profile),
+      }
+    );
   }
 
   // Delete tone profile
   async deleteToneProfile(id: string): Promise<ApiResponse<void>> {
-    return this.request<void>(API_CONFIG.ENDPOINTS.TONE_PROFILE_BY_ID.replace(':id', id), {
-      method: 'DELETE',
-    });
+    return this.request<void>(
+      API_CONFIG.ENDPOINTS.TONE_PROFILE_BY_ID.replace(":id", id),
+      {
+        method: "DELETE",
+      }
+    );
   }
 
   // Toggle active status
   async toggleToneProfile(id: string): Promise<ApiResponse<ToneProfile>> {
-    return this.request<ToneProfile>(API_CONFIG.ENDPOINTS.TONE_PROFILE_TOGGLE.replace(':id', id), {
-      method: 'PATCH',
-    });
+    return this.request<ToneProfile>(
+      API_CONFIG.ENDPOINTS.TONE_PROFILE_TOGGLE.replace(":id", id),
+      {
+        method: "PATCH",
+      }
+    );
   }
 }
 

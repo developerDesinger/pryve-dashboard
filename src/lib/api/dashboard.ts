@@ -182,6 +182,7 @@ class DashboardAPI {
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...API_CONFIG.DEFAULT_HEADERS,
           ...options.headers,
         },
       };

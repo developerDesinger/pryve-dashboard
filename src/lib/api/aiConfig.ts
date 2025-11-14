@@ -1,4 +1,4 @@
-import { API_CONFIG, getApiUrl } from '@/lib/config';
+import { API_CONFIG, getApiUrl } from "@/lib/config";
 
 // API Response types
 interface ApiResponse<T = any> {
@@ -38,7 +38,8 @@ class AIConfigAPI {
       const config: RequestInit = {
         ...options,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          ...API_CONFIG.DEFAULT_HEADERS,
           ...options.headers,
         },
       };
@@ -47,11 +48,12 @@ class AIConfigAPI {
       const data = await response.json();
 
       // Check if the response contains success field (API response format)
-      if (data.hasOwnProperty('success')) {
+      if (data.hasOwnProperty("success")) {
         const result = {
           success: data.success,
-          message: data.message || (data.success ? 'Success' : 'An error occurred'),
-          data: data.success ? (data.data || data) as T : undefined,
+          message:
+            data.message || (data.success ? "Success" : "An error occurred"),
+          data: data.success ? ((data.data || data) as T) : undefined,
           error: data.error || (!data.success ? data.message : undefined),
         };
         return result;
@@ -61,21 +63,21 @@ class AIConfigAPI {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'An error occurred',
-          error: data.error || 'Unknown error',
+          message: data.message || "An error occurred",
+          error: data.error || "Unknown error",
         };
       }
 
       return {
         success: true,
-        message: data.message || 'Success',
+        message: data.message || "Success",
         data: data.data || data,
       };
     } catch (error) {
       return {
         success: false,
-        message: 'Network error occurred',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: "Network error occurred",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -83,9 +85,10 @@ class AIConfigAPI {
   // Get AI configuration
   async getAIConfig(token: string): Promise<ApiResponse<AIConfig>> {
     return this.request<AIConfig>(API_CONFIG.ENDPOINTS.AI_CONFIG, {
-      method: 'GET',
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
+        ...API_CONFIG.DEFAULT_HEADERS,
       },
     });
   }
@@ -96,9 +99,10 @@ class AIConfigAPI {
     configData: Partial<AIConfig>
   ): Promise<ApiResponse<AIConfig>> {
     return this.request<AIConfig>(API_CONFIG.ENDPOINTS.AI_CONFIG, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
+        ...API_CONFIG.DEFAULT_HEADERS,
       },
       body: JSON.stringify(configData),
     });
@@ -107,12 +111,13 @@ class AIConfigAPI {
   // Create AI configuration (if it doesn't exist)
   async createAIConfig(
     token: string,
-    configData: Omit<AIConfig, 'id' | 'createdAt' | 'updatedAt'>
+    configData: Omit<AIConfig, "id" | "createdAt" | "updatedAt">
   ): Promise<ApiResponse<AIConfig>> {
     return this.request<AIConfig>(API_CONFIG.ENDPOINTS.AI_CONFIG, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
+        ...API_CONFIG.DEFAULT_HEADERS,
       },
       body: JSON.stringify(configData),
     });
