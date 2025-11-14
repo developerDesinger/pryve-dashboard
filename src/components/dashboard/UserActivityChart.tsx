@@ -2,7 +2,11 @@
 import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-// import activity from "@/data/activity.json"; // Removed mock data
+import {
+  dashboardAPI,
+  type ActivityTrendPoint,
+  type DashboardPeriodParam,
+} from "@/lib/api/dashboard";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,17 +20,22 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, ChartTooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  ChartTooltip,
+  Legend
+);
 
-// Rename to avoid clashing with chart.js Point type
-type ActivityPoint = { label: string; users: number; messages: number };
 type Period = "Daily" | "Weekly" | "Monthly";
 
-// Mock data structure for chart - will be replaced with API data
-const DATASETS: Record<Period, ActivityPoint[]> = {
+const EMPTY_DATASETS: Record<Period, ActivityTrendPoint[]> = {
   Daily: [],
   Weekly: [],
-  Monthly: []
+  Monthly: [],
 };
 
 // Safe gradient factory to avoid SSR/initial layout issues
@@ -39,7 +48,12 @@ function makeVerticalGradient(from: string, to: string) {
       // Fallback solid color until layout is ready
       return from;
     }
-    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    const gradient = ctx.createLinearGradient(
+      0,
+      chartArea.top,
+      0,
+      chartArea.bottom
+    );
     gradient.addColorStop(0, from);
     gradient.addColorStop(1, to);
     return gradient;
@@ -67,6 +81,62 @@ const crosshairPlugin: Plugin = {
   },
 };
 
+const toQueryPeriod = (period: Period): DashboardPeriodParam => {
+  switch (period) {
+    case "Daily":
+      return "daily";
+    case "Weekly":
+      return "weekly";
+    default:
+      return "monthly";
+  }
+};
+
+const toNumber = (value: unknown): number => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatTrendLabel = (raw: unknown): string => {
+  if (typeof raw === "string") {
+    const date = new Date(raw);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+    }
+    return raw;
+  }
+  if (typeof raw === "number") {
+    return raw.toString();
+  }
+  return "";
+};
+
+const normalizePoints = (items: unknown): ActivityTrendPoint[] => {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((item) => {
+      const entry = item as Record<string, any>;
+      const rawLabel =
+        entry?.label ?? entry?.date ?? entry?.period ?? entry?.name;
+      const label = formatTrendLabel(rawLabel);
+      const usersValue = toNumber(
+        entry?.users ?? entry?.activeUsers ?? entry?.totalActiveUsers
+      );
+      const messagesValue = toNumber(
+        entry?.messages ?? entry?.messageVolume ?? entry?.totalMessages
+      );
+      return {
+        label,
+        users: usersValue,
+        messages: messagesValue,
+      };
+    })
+    .filter((item) => Boolean(item.label));
+};
+
 // External tooltip to match the design
 function externalTooltip(context: any) {
   const { chart, tooltip } = context;
@@ -83,18 +153,26 @@ function externalTooltip(context: any) {
     el.style.opacity = "0";
     return;
   }
-  const users = tooltip.dataPoints?.find((d: any) => d.dataset.label === "Users");
-  const messages = tooltip.dataPoints?.find((d: any) => d.dataset.label === "Messages");
+  const users = tooltip.dataPoints?.find(
+    (d: any) => d.dataset.label === "Users"
+  );
+  const messages = tooltip.dataPoints?.find(
+    (d: any) => d.dataset.label === "Messages"
+  );
   el.innerHTML = `
     <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.08);overflow:hidden;">
       <div style="display:grid;grid-template-columns:1fr 1fr;">
         <div style="padding:12px 16px;">
           <div style="font-size:12px;color:#667085;">Users</div>
-          <div style="font-size:22px;font-weight:700;color:#e38a8a;">${Number(users?.formattedValue ?? 0).toLocaleString()}</div>
+          <div style="font-size:22px;font-weight:700;color:#e38a8a;">${Number(
+            users?.formattedValue ?? 0
+          ).toLocaleString()}</div>
         </div>
         <div style="padding:12px 16px;border-left:1px solid #e5e7eb;">
           <div style="font-size:12px;color:#667085;">Messages</div>
-          <div style="font-size:22px;font-weight:700;color:#6b5562;">${Number(messages?.formattedValue ?? 0).toLocaleString()}</div>
+          <div style="font-size:22px;font-weight:700;color:#6b5562;">${Number(
+            messages?.formattedValue ?? 0
+          ).toLocaleString()}</div>
         </div>
       </div>
     </div>
@@ -106,13 +184,78 @@ function externalTooltip(context: any) {
   const x = left + tooltip.caretX - el.clientWidth / 2;
   const y = top + tooltip.caretY - 70; // raise above line
   el.style.opacity = "1";
-  el.style.left = `${Math.max(chart.chartArea.left, Math.min(x, chart.chartArea.right - el.clientWidth))}px`;
+  el.style.left = `${Math.max(
+    chart.chartArea.left,
+    Math.min(x, chart.chartArea.right - el.clientWidth)
+  )}px`;
   el.style.top = `${Math.max(chart.chartArea.top, y)}px`;
 }
 
-export default function UserActivityChart({ className }: { className?: string }) {
+export default function UserActivityChart({
+  className,
+}: {
+  className?: string;
+}) {
   const [period, setPeriod] = React.useState<Period>("Monthly");
-  const dataArr = DATASETS[period];
+  const [datasets, setDatasets] = React.useState<
+    Record<Period, ActivityTrendPoint[]>
+  >(() => ({
+    ...EMPTY_DATASETS,
+  }));
+  const [loadingPeriod, setLoadingPeriod] = React.useState<Period | null>(null);
+  const fetchedPeriodsRef = React.useRef<Set<Period>>(new Set());
+
+  const fetchPeriodData = React.useCallback(async (selectedPeriod: Period) => {
+    setLoadingPeriod(selectedPeriod);
+    const response = await dashboardAPI.getActivityTrends(
+      toQueryPeriod(selectedPeriod)
+    );
+    if (response.success) {
+      const payload = response.data;
+      const datasetMap =
+        (payload?.datasets as Record<
+          string,
+          ActivityTrendPoint[] | undefined
+        >) ?? {};
+      const fallbackField = payload
+        ? (payload as Record<string, unknown>)[selectedPeriod.toLowerCase()]
+        : undefined;
+      const normalized =
+        [
+          payload?.trends,
+          payload?.userActivityTrends?.trends,
+          datasetMap[selectedPeriod],
+          datasetMap[selectedPeriod.toLowerCase()],
+          payload?.points,
+          fallbackField,
+        ]
+          .map((candidate) => normalizePoints(candidate))
+          .find((points) => points.length) ?? [];
+
+      setDatasets((prev) => ({
+        ...prev,
+        [selectedPeriod]: normalized.length ? normalized : prev[selectedPeriod],
+      }));
+    }
+    setLoadingPeriod((current) =>
+      current === selectedPeriod ? null : current
+    );
+  }, []);
+
+  React.useEffect(() => {
+    const hasDataForPeriod = (datasets[period] ?? []).length > 0;
+    if (
+      hasDataForPeriod ||
+      loadingPeriod === period ||
+      fetchedPeriodsRef.current.has(period)
+    ) {
+      return;
+    }
+    fetchedPeriodsRef.current.add(period);
+    fetchPeriodData(period);
+  }, [datasets, period, loadingPeriod, fetchPeriodData]);
+
+  const dataArr = datasets[period] ?? [];
 
   const labels = dataArr.map((d) => d.label);
   const users = dataArr.map((d) => d.users);
@@ -125,7 +268,10 @@ export default function UserActivityChart({ className }: { className?: string })
         label: "Messages",
         data: messages,
         borderColor: "#475569",
-        backgroundColor: makeVerticalGradient("rgba(71, 85, 105, 0.24)", "rgba(71, 85, 105, 0.06)"),
+        backgroundColor: makeVerticalGradient(
+          "rgba(71, 85, 105, 0.24)",
+          "rgba(71, 85, 105, 0.06)"
+        ),
         fill: true,
         borderWidth: 2,
         tension: 0.3,
@@ -135,7 +281,10 @@ export default function UserActivityChart({ className }: { className?: string })
         label: "Users",
         data: users,
         borderColor: "#111827",
-        backgroundColor: makeVerticalGradient("rgba(239,68,68,0.24)", "rgba(239,68,68,0.06)"),
+        backgroundColor: makeVerticalGradient(
+          "rgba(239,68,68,0.24)",
+          "rgba(239,68,68,0.06)"
+        ),
         fill: true,
         borderWidth: 2,
         tension: 0.3,
@@ -164,22 +313,41 @@ export default function UserActivityChart({ className }: { className?: string })
       y: {
         beginAtZero: true,
         grid: { color: "#e5e7eb" },
-        ticks: { color: "#667085", font: { size: 12 }, callback: (v: any) => Number(v).toLocaleString() },
+        ticks: {
+          color: "#667085",
+          font: { size: 12 },
+          callback: (v: any) => Number(v).toLocaleString(),
+        },
       },
     },
     interaction: { mode: "index" as const, intersect: false },
   } as const;
 
+  const isFetching = loadingPeriod === period && !dataArr.length;
+
   return (
-    <Card className={cn("rounded-2xl p-5 bg-white dark:bg-white w-full min-w-0", className)}>
+    <Card
+      className={cn(
+        "rounded-2xl p-5 bg-white dark:bg-white w-full min-w-0",
+        className
+      )}
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl border border-border inline-flex items-center justify-center">
-            <img src="/icons/Unselect-side/analytics.svg" alt="chart" className="w-5 h-5" />
+            <img
+              src="/icons/Unselect-side/analytics.svg"
+              alt="chart"
+              className="w-5 h-5"
+            />
           </div>
           <div>
-            <div className="text-[20px] font-semibold">User Activity Trends</div>
-            <div className="text-[14px] text-muted-foreground">Daily active users and message volume</div>
+            <div className="text-[20px] font-semibold">
+              User Activity Trends
+            </div>
+            <div className="text-[14px] text-muted-foreground">
+              Daily active users and message volume
+            </div>
           </div>
         </div>
         <select
@@ -194,10 +362,13 @@ export default function UserActivityChart({ className }: { className?: string })
       </div>
 
       <div className="relative w-full min-w-0" style={{ height: 320 }}>
+        {isFetching ? (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/70 text-sm text-muted-foreground">
+            Loading activity...
+          </div>
+        ) : null}
         <Line data={data} options={options} plugins={[crosshairPlugin]} />
       </div>
     </Card>
   );
 }
-
-

@@ -34,7 +34,7 @@ export default function MemoryPage() {
     (async () => {
       setLoading(true);
       try {
-        const token = cookieUtils.getAuthToken() || '';
+        const token = cookieUtils.getAuthToken() || "";
         const resp = await authAPI.getAllUsers(token, 1, 20);
         let apiUsers: any[] = [];
         if (resp.success && resp.data && Array.isArray(resp.data.data)) {
@@ -43,7 +43,9 @@ export default function MemoryPage() {
         // Adapt to UserSearch expected shape
         const mappedUsers: MemoryUser[] = apiUsers.map((user) => {
           const rawAvatar = user.profilePhoto || user.avatar || "";
-          const isDefault = typeof rawAvatar === 'string' && rawAvatar.includes('default-profile.png');
+          const isDefault =
+            typeof rawAvatar === "string" &&
+            rawAvatar.includes("default-profile.png");
           const avatar = isDefault ? "" : rawAvatar;
           return {
             id: user.id?.toString() || user._id?.toString() || "",
@@ -52,7 +54,10 @@ export default function MemoryPage() {
             avatar,
             isPremium: !!user.isPremium,
             memoriesCount: user.memoriesCount ?? 0,
-            memoriesColor: user.memoriesCount > 10 ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800",
+            memoriesColor:
+              user.memoriesCount > 10
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800",
           } as MemoryUser;
         });
         setUsers(mappedUsers);
@@ -73,8 +78,11 @@ export default function MemoryPage() {
       }
       try {
         setFavLoading(true);
-        const token = cookieUtils.getAuthToken() || '';
-        const resp = await memoryAPI.getFavoriteMessagesByUserId(token, selectedUserId);
+        const token = cookieUtils.getAuthToken() || "";
+        const resp = await memoryAPI.getFavoriteMessagesByUserId(
+          token,
+          selectedUserId
+        );
         if (resp.success && Array.isArray(resp.data)) {
           setFavMessages(resp.data);
         } else {
@@ -92,16 +100,18 @@ export default function MemoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-      <div>
-          <h1 className="text-[24px] leading-9 font-bold text-[#242424]">Memory Sanctuary</h1>
-        <p className="mt-1 text-[16px] leading-6 text-muted-foreground">
-          A caring space to understand and nurture user connections.
+        <div>
+          <h1 className="text-[24px] leading-9 font-bold text-[#242424]">
+            Memory Sanctuary
+          </h1>
+          <p className="mt-1 text-[16px] leading-6 text-muted-foreground">
+            A caring space to understand and nurture user connections.
           </p>
         </div>
       </div>
-
+      {/* 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Memory stats will be populated from API data */}
+
         <div className="text-center py-8 col-span-full">
           <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <svg width="24" height="24" className="text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -111,7 +121,7 @@ export default function MemoryPage() {
           <h3 className="text-lg font-medium text-gray-900 mb-2">No memory stats available</h3>
           <p className="text-gray-500">Memory statistics will be loaded from API</p>
         </div>
-      </div>
+      </div> */}
 
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-4 lg:gap-6">
@@ -135,9 +145,11 @@ export default function MemoryPage() {
                   strokeLinejoin="round"
                 />
               </svg>
-              <h2 className="text-[16px] lg:text-[18px] font-semibold text-gray-900">Users</h2>
+              <h2 className="text-[16px] lg:text-[18px] font-semibold text-gray-900">
+                Users
+              </h2>
             </div>
-            <UserSearch 
+            <UserSearch
               users={users} // Populated from API
               selectedUserId={selectedUserId}
               onUserSelect={setSelectedUserId}
@@ -150,24 +162,47 @@ export default function MemoryPage() {
           {!selectedUserId && (
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg width="24" height="24" className="text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg
+                  width="24"
+                  height="24"
+                  className="text-gray-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No user selected</h3>
-              <p className="text-gray-500">Select a user to view their memory details</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No user selected
+              </h3>
+              <p className="text-gray-500">
+                Select a user to view their memory details
+              </p>
             </div>
           )}
 
-          {selectedUserId && (
-            favLoading ? (
-              <div className="text-center py-12 text-gray-500">Loading favorite messages...</div>
+          {selectedUserId &&
+            (favLoading ? (
+              <div className="text-center py-12 text-gray-500">
+                Loading favorite messages...
+              </div>
             ) : (
               (() => {
-                const selectedUser = (users as any[]).find(u => u.id === selectedUserId);
+                const selectedUser = (users as any[]).find(
+                  (u) => u.id === selectedUserId
+                );
                 if (!selectedUser) {
                   return (
-                    <div className="text-center py-12 text-gray-500">User not found.</div>
+                    <div className="text-center py-12 text-gray-500">
+                      User not found.
+                    </div>
                   );
                 }
                 const categories = ["All", "Favorites"];
@@ -198,12 +233,9 @@ export default function MemoryPage() {
                   />
                 );
               })()
-            )
-          )}
+            ))}
         </div>
       </div>
     </div>
   );
 }
-
-
