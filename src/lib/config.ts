@@ -42,6 +42,14 @@ export const API_CONFIG = {
     DASHBOARD_RECENT_ACTIVITY: "/api/v1/dashboard/recent-activity",
     // Payments endpoints
     REVENUECAT_PAYMENTS: "/api/v1/webhooks/revenuecat/admin/payments",
+    // Settings endpoints
+    SETTINGS: "/api/v1/settings",
+    FEATURE_TOGGLES: "/api/v1/settings/feature-toggles",
+    FEATURE_TOGGLE_BY_NAME: "/api/v1/settings/feature-toggles/:featureName",
+    FEATURE_TOGGLE_TOGGLE: "/api/v1/settings/feature-toggles/:featureName/toggle",
+    FEATURE_TOGGLES_INITIALIZE: "/api/v1/settings/feature-toggles/initialize",
+    SYSTEM_LANGUAGE: "/api/v1/settings/system-language",
+    SYSTEM_SETTINGS: "/api/v1/settings/system",
   },
 
   // Cookie configuration
