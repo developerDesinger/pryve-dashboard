@@ -8,6 +8,7 @@ import { authAPI, type User, type PaginationInfo, type UserCounts } from "@/lib/
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { PageLoader } from "@/components/ui/loader";
+import { cookieUtils } from "@/lib/cookies";
 
 function UserStatMiniCardsRow({ counts }: { counts: UserCounts }) {
   const stats: UserStat[] = [
@@ -65,8 +66,10 @@ export default function UsersPage() {
     premiumUsers: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const { user } = useAuth();
-  const { showError } = useToast();
+  const { showError, showSuccess, showLoading, dismiss } = useToast();
   const fetchingRef = useRef(false);
 
   const fetchUsers = async (page: number = pagination.currentPage, limit: number = pagination.limit) => {
@@ -75,7 +78,7 @@ export default function UsersPage() {
     try {
       fetchingRef.current = true;
       setLoading(true);
-      const token = localStorage.getItem('authToken') || '';
+      const token = cookieUtils.getAuthToken() || localStorage.getItem('authToken') || '';
       const response = await authAPI.getAllUsers(token, page, limit);
       
       if (response.success && response.data) {
@@ -111,6 +114,90 @@ export default function UsersPage() {
 
   const handleLimitChange = (limit: number) => {
     fetchUsers(1, limit); // Reset to first page when changing limit
+  };
+
+  const handleViewUser = (user: User) => {
+    setSelectedUser(user);
+  };
+
+  const closeSelectedUser = () => setSelectedUser(null);
+
+  useEffect(() => {
+    if (!selectedUser) return;
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeSelectedUser();
+      }
+    };
+
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [selectedUser]);
+
+  useEffect(() => {
+    if (!selectedUser) return;
+    const updatedUser = users.find((u) => u.id === selectedUser.id);
+    if (updatedUser && updatedUser !== selectedUser) {
+      setSelectedUser(updatedUser);
+    }
+  }, [users, selectedUser]);
+
+  const handleUpdateUserStatus = async (
+    targetUser: User,
+    newStatus: "ACTIVE" | "SUSPENDED"
+  ) => {
+    const token = cookieUtils.getAuthToken() || localStorage.getItem("authToken") || "";
+    if (!token) {
+      showError("Missing authentication token. Please sign in again.");
+      return;
+    }
+
+    setActionLoadingId(targetUser.id);
+    const loadingToastId = showLoading("Updating user status...");
+
+    try {
+      const response = await authAPI.updateUser(token, targetUser.id, {
+        status: newStatus,
+      });
+
+      if (response.success) {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === targetUser.id ? { ...u, status: newStatus } : u
+          )
+        );
+
+        setCounts((prev) => {
+          const next = { ...prev };
+          const previousStatus = targetUser.status;
+
+          if (previousStatus === "ACTIVE") {
+            next.activeUsers = Math.max(0, next.activeUsers - 1);
+          } else if (previousStatus === "SUSPENDED") {
+            next.suspendedUsers = Math.max(0, next.suspendedUsers - 1);
+          }
+
+          if (newStatus === "ACTIVE") {
+            next.activeUsers += 1;
+          } else if (newStatus === "SUSPENDED") {
+            next.suspendedUsers += 1;
+          }
+
+          return next;
+        });
+
+        showSuccess(
+          `User ${newStatus === "ACTIVE" ? "activated" : "suspended"} successfully`
+        );
+      } else {
+        showError(response.message || "Failed to update user status");
+      }
+    } catch (error) {
+      showError("Network error. Please try again.");
+    } finally {
+      dismiss(loadingToastId);
+      setActionLoadingId(null);
+    }
   };
 
   if (loading) {
@@ -219,13 +306,18 @@ export default function UsersPage() {
           {
             key: "actions",
             header: "Actions",
-            render: () => (
-              <button
-                className="w-9 h-9 rounded-xl inline-flex items-center justify-center cursor-pointer"
-                aria-label="Row actions"
-              >
-                <img src="/Leading%20Icon.svg" alt="Actions" className="w-4 h-4" />
-              </button>
+            render: (row: User) => (
+              <RowActions
+                user={row}
+                onView={() => handleViewUser(row)}
+                onToggleStatus={() =>
+                  handleUpdateUserStatus(
+                    row,
+                    row.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE"
+                  )
+                }
+                isProcessing={actionLoadingId === row.id}
+              />
             ),
           },
         ] as Column<User>[]}
@@ -249,6 +341,165 @@ export default function UsersPage() {
           </div>
         }
       />
+
+      {selectedUser && (
+        <div className="fixed inset-0 z-40 flex">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={closeSelectedUser}
+          />
+          <div className="relative ml-auto h-full w-full max-w-md bg-white shadow-2xl z-50">
+            <div className="flex items-start justify-between px-6 py-5 border-b border-border">
+              <div>
+                <h3 className="text-xl font-semibold text-foreground">
+                  {selectedUser.fullName}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {selectedUser.email}
+                </p>
+              </div>
+              <button
+                onClick={closeSelectedUser}
+                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-accent"
+                aria-label="Close details"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-4 overflow-y-auto h-[calc(100%-80px)]">
+              <section>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                  Profile
+                </h4>
+                <div className="space-y-3 text-sm">
+                  <DetailRow label="Role" value={selectedUser.role} />
+                  <DetailRow label="Status" value={selectedUser.status} />
+                  <DetailRow
+                    label="Username"
+                    value={selectedUser.userName || "N/A"}
+                  />
+                  <DetailRow label="Login Method" value={selectedUser.loginType} />
+                </div>
+              </section>
+
+              <section>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                  Activity
+                </h4>
+                <div className="space-y-3 text-sm">
+                  <DetailRow
+                    label="Joined"
+                    value={new Date(selectedUser.createdAt).toLocaleDateString()}
+                  />
+                  <DetailRow
+                    label="Last Active"
+                    value={new Date(selectedUser.updatedAt).toLocaleDateString()}
+                  />
+                </div>
+              </section>
+
+              <section>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                  Contact
+                </h4>
+                <div className="space-y-3 text-sm">
+                  <DetailRow label="Email" value={selectedUser.email} />
+                  <DetailRow
+                    label="Phone"
+                    value={selectedUser.phoneNumber || "Not provided"}
+                  />
+                  <DetailRow
+                    label="Country"
+                    value={selectedUser.country || "Not provided"}
+                  />
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type RowActionsProps = {
+  user: User;
+  onView: () => void;
+  onToggleStatus: () => void;
+  isProcessing: boolean;
+};
+
+function RowActions({ user, onView, onToggleStatus, isProcessing }: RowActionsProps) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const handleAction = (callback: () => void) => {
+    callback();
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative inline-flex" ref={menuRef}>
+      <button
+        type="button"
+        className="w-9 h-9 rounded-xl inline-flex items-center justify-center cursor-pointer border border-transparent hover:border-border transition-colors"
+        aria-label="Row actions"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <img src="/Leading%20Icon.svg" alt="Actions" className="w-4 h-4" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 sm:right-0 left-0 sm:left-auto top-full z-20 mt-2 w-full max-w-[220px] min-w-[160px] rounded-2xl border border-border bg-white shadow-lg">
+          <div className="flex flex-col gap-1 py-2">
+            <button
+              className="w-full px-4 py-2 text-left text-sm leading-5 hover:bg-accent transition-colors"
+              onClick={() => handleAction(onView)}
+            >
+              View details
+            </button>
+            <button
+              className={`w-full px-4 py-2 text-left text-sm leading-5 transition-colors ${
+                user.status === "ACTIVE"
+                  ? "text-red-600 hover:bg-red-50"
+                  : "text-green-600 hover:bg-emerald-50"
+              } ${isProcessing ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}
+              onClick={() => !isProcessing && handleAction(onToggleStatus)}
+              disabled={isProcessing}
+            >
+              {user.status === "ACTIVE" ? "Suspend user" : "Activate user"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <span className="text-muted-foreground text-xs uppercase tracking-wide">
+        {label}
+      </span>
+      <span className="text-foreground text-sm font-medium text-right">
+        {value}
+      </span>
     </div>
   );
 }
