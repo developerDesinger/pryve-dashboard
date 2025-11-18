@@ -50,6 +50,10 @@ export const API_CONFIG = {
     FEATURE_TOGGLES_INITIALIZE: "/api/v1/settings/feature-toggles/initialize",
     SYSTEM_LANGUAGE: "/api/v1/settings/system-language",
     SYSTEM_SETTINGS: "/api/v1/settings/system",
+    // Notifications endpoints
+    NOTIFICATIONS: "/api/v1/notifications",
+    NOTIFICATIONS_BROADCAST: "/api/v1/notifications/broadcast",
+    NOTIFICATION_MARK_READ: "/api/v1/notifications/:notificationId/read",
   },
 
   // Cookie configuration

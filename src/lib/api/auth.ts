@@ -36,6 +36,8 @@ interface UserProfile {
   phoneNumber?: string;
   bio?: string;
   isVerified: boolean;
+  status?: string;
+  role?: string;
   // Prompt and Fallback Message fields
   systemPrompt?: string;
   systemPromptActive?: boolean;

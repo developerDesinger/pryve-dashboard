@@ -247,8 +247,11 @@ export default function FallbackMessages() {
             </div>
           </div>
         ) : (
-          messages.map((message) => (
-          <div key={message.id} className="space-y-4 w-full">
+          <>
+            {messages.map((message) => {
+              const isEditing = editingId === message.id;
+              return (
+                <div key={message.id} className="space-y-4 w-full">
             {/* Section Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
               <div className="flex items-center gap-3">
@@ -273,15 +276,15 @@ export default function FallbackMessages() {
                   {message.active ? 'Deactivate' : 'Activate'}
                 </button>
                 <button 
-                  onClick={() => editingId === message.id ? handleSave(message.id, message.content) : handleEdit(message.id)}
+                  onClick={() => isEditing ? handleSave(message.id, message.content) : handleEdit(message.id)}
                   disabled={isSaving}
                   className={`w-full sm:w-auto px-3 py-1 bg-[#757575] text-white rounded-lg text-[12px] font-medium hover:brightness-95 transition-colors ${
                     isSaving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                   }`}
                 >
-                  {isSaving ? 'Saving...' : editingId === message.id ? 'Save' : 'Edit'}
+                  {isSaving ? 'Saving...' : isEditing ? 'Save' : 'Edit'}
                 </button>
-                {editingId === message.id && (
+                {isEditing && (
                   <button 
                     onClick={() => setEditingId(null)}
                     disabled={isSaving}
@@ -299,13 +302,16 @@ export default function FallbackMessages() {
                 <textarea
                   value={message.content}
                   onChange={(e) => {
+                    if (!isEditing) return;
                     setMessages(prev => prev.map(msg => 
                       msg.id === message.id ? { ...msg, content: e.target.value } : msg
                     ));
                   }}
-                  disabled={isSaving}
-                  className={`w-full h-32 p-4 pr-12 bg-gray-50 rounded-xl border-0 text-[14px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 resize-none ${
-                    isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                  disabled={!isEditing || isSaving}
+                  className={`w-full h-32 p-4 pr-12 rounded-xl border text-[14px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#757575] resize-none transition-all ${
+                    (!isEditing || isSaving)
+                      ? 'bg-gray-50 text-gray-500 border-transparent cursor-not-allowed select-none'
+                      : 'bg-white border-gray-200 cursor-text'
                   }`}
                   placeholder="Enter your fallback message here..."
                 />
@@ -315,7 +321,10 @@ export default function FallbackMessages() {
               </div>
             </div>
           </div>
-        )))}
+        );
+      })}
+          </>
+        )}
       </div>
     </Card>
   );

@@ -86,6 +86,7 @@ export function Sidebar() {
         <NavItem item={{ href: "/dashboard/payments", label: "Payments", icon: "/icons/Unselect-side/payments.svg" }} active={isActive("/dashboard/payments")} />
         
         <SectionHeader title="Other" />
+        <NavItem item={{ href: "/dashboard/notifications", label: "Notifications", icon: "/icons/bell.svg" }} active={isActive("/dashboard/notifications")} />
         <NavItem item={{ href: "/dashboard/settings", label: "Settings", icon: "/icons/Unselect-side/settings.svg" }} active={isActive("/dashboard/settings")} />
       </nav>
       
