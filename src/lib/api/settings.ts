@@ -1,5 +1,5 @@
-import { API_CONFIG } from '../config';
-import { cookieUtils } from '../cookies';
+import { API_CONFIG } from "../config";
+import { cookieUtils } from "../cookies";
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -13,7 +13,7 @@ export interface FeatureToggle {
   name: string;
   description: string;
   isEnabled: boolean;
-  status: 'ACTIVE' | 'INACTIVE' | 'COMING_SOON';
+  status: "ACTIVE" | "INACTIVE" | "COMING_SOON";
   createdAt?: string;
   updatedAt?: string;
 }
@@ -38,7 +38,7 @@ export interface CompleteSettings {
 
 export interface UpdateFeatureToggleRequest {
   isEnabled?: boolean;
-  status?: 'ACTIVE' | 'INACTIVE' | 'COMING_SOON';
+  status?: "ACTIVE" | "INACTIVE" | "COMING_SOON";
 }
 
 export interface UpdateSystemLanguageRequest {
@@ -58,32 +58,32 @@ class SettingsAPI {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseURL}${endpoint}`;
-      const token = cookieUtils.getAuthToken() || '';
-      
+      const token = cookieUtils.getAuthToken() || "";
+
       const config: RequestInit = {
-        ...options,
         headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...API_CONFIG.DEFAULT_HEADERS,
           ...options.headers,
-          // Ensure Content-Type is always application/json for requests with body (set last so it can't be overridden)
-          'Content-Type': 'application/json',
         },
+        ...options,
       };
 
       const response = await fetch(url, config);
-      
+
       // Check if response is actually JSON before parsing
-      const contentType = response.headers.get('content-type');
-      if (contentType && !contentType.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+      if (contentType && !contentType.includes("application/json")) {
         // If server returns HTML (like ngrok warning page), return error without parsing
         return {
           success: false,
-          message: 'Server returned non-JSON response. This might be an error page or the endpoint may not exist.',
+          message:
+            "Server returned non-JSON response. This might be an error page or the endpoint may not exist.",
           error: `Expected JSON but received ${contentType}. Please check if the API endpoint is correct.`,
         };
       }
-      
+
       // Clone response to read as text first if needed, otherwise parse as JSON
       let data;
       try {
@@ -92,16 +92,21 @@ class SettingsAPI {
         // If JSON parsing fails, the response might still be HTML
         return {
           success: false,
-          message: 'Failed to parse JSON response. Server may have returned HTML or invalid JSON.',
-          error: parseError instanceof Error ? parseError.message : 'JSON parse error',
+          message:
+            "Failed to parse JSON response. Server may have returned HTML or invalid JSON.",
+          error:
+            parseError instanceof Error
+              ? parseError.message
+              : "JSON parse error",
         };
       }
 
-      if (data.hasOwnProperty('success')) {
+      if (data.hasOwnProperty("success")) {
         return {
           success: data.success,
-          message: data.message || (data.success ? 'Success' : 'An error occurred'),
-          data: data.success ? data.data as T : undefined,
+          message:
+            data.message || (data.success ? "Success" : "An error occurred"),
+          data: data.success ? (data.data as T) : undefined,
           error: data.error || (!data.success ? data.message : undefined),
         };
       }
@@ -109,21 +114,21 @@ class SettingsAPI {
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'An error occurred',
-          error: data.error || 'Unknown error',
+          message: data.message || "An error occurred",
+          error: data.error || "Unknown error",
         };
       }
 
       return {
         success: true,
-        message: data.message || 'Success',
+        message: data.message || "Success",
         data: data.data || data,
       };
     } catch (error) {
       return {
         success: false,
-        message: 'Network error occurred',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: "Network error occurred",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -131,22 +136,27 @@ class SettingsAPI {
   // Get complete settings
   async getCompleteSettings(): Promise<ApiResponse<CompleteSettings>> {
     return this.request<CompleteSettings>(API_CONFIG.ENDPOINTS.SETTINGS, {
-      method: 'GET',
+      method: "GET",
     });
   }
 
   // Feature Toggles
   async getAllFeatureToggles(): Promise<ApiResponse<FeatureToggle[]>> {
     return this.request<FeatureToggle[]>(API_CONFIG.ENDPOINTS.FEATURE_TOGGLES, {
-      method: 'GET',
+      method: "GET",
     });
   }
 
-  async getFeatureToggleByName(featureName: string): Promise<ApiResponse<FeatureToggle>> {
+  async getFeatureToggleByName(
+    featureName: string
+  ): Promise<ApiResponse<FeatureToggle>> {
     return this.request<FeatureToggle>(
-      API_CONFIG.ENDPOINTS.FEATURE_TOGGLE_BY_NAME.replace(':featureName', featureName),
+      API_CONFIG.ENDPOINTS.FEATURE_TOGGLE_BY_NAME.replace(
+        ":featureName",
+        featureName
+      ),
       {
-        method: 'GET',
+        method: "GET",
       }
     );
   }
@@ -156,33 +166,46 @@ class SettingsAPI {
     update: UpdateFeatureToggleRequest
   ): Promise<ApiResponse<FeatureToggle>> {
     return this.request<FeatureToggle>(
-      API_CONFIG.ENDPOINTS.FEATURE_TOGGLE_BY_NAME.replace(':featureName', featureName),
+      API_CONFIG.ENDPOINTS.FEATURE_TOGGLE_BY_NAME.replace(
+        ":featureName",
+        featureName
+      ),
       {
-        method: 'PATCH',
+        method: "PATCH",
         body: JSON.stringify(update),
       }
     );
   }
 
-  async toggleFeature(featureName: string): Promise<ApiResponse<FeatureToggle>> {
+  async toggleFeature(
+    featureName: string
+  ): Promise<ApiResponse<FeatureToggle>> {
     return this.request<FeatureToggle>(
-      API_CONFIG.ENDPOINTS.FEATURE_TOGGLE_TOGGLE.replace(':featureName', featureName),
+      API_CONFIG.ENDPOINTS.FEATURE_TOGGLE_TOGGLE.replace(
+        ":featureName",
+        featureName
+      ),
       {
-        method: 'PATCH',
+        method: "PATCH",
       }
     );
   }
 
-  async initializeDefaultFeatureToggles(): Promise<ApiResponse<FeatureToggle[]>> {
-    return this.request<FeatureToggle[]>(API_CONFIG.ENDPOINTS.FEATURE_TOGGLES_INITIALIZE, {
-      method: 'POST',
-    });
+  async initializeDefaultFeatureToggles(): Promise<
+    ApiResponse<FeatureToggle[]>
+  > {
+    return this.request<FeatureToggle[]>(
+      API_CONFIG.ENDPOINTS.FEATURE_TOGGLES_INITIALIZE,
+      {
+        method: "POST",
+      }
+    );
   }
 
   // System Language
   async getSystemLanguage(): Promise<ApiResponse<SystemLanguage>> {
     return this.request<SystemLanguage>(API_CONFIG.ENDPOINTS.SYSTEM_LANGUAGE, {
-      method: 'GET',
+      method: "GET",
     });
   }
 
@@ -190,7 +213,7 @@ class SettingsAPI {
     language: string
   ): Promise<ApiResponse<SystemLanguage>> {
     return this.request<SystemLanguage>(API_CONFIG.ENDPOINTS.SYSTEM_LANGUAGE, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ language }),
     });
   }
@@ -198,11 +221,10 @@ class SettingsAPI {
   // System Settings
   async getAllSystemSettings(): Promise<ApiResponse<SystemSettings>> {
     return this.request<SystemSettings>(API_CONFIG.ENDPOINTS.SYSTEM_SETTINGS, {
-      method: 'GET',
+      method: "GET",
     });
   }
 }
 
 // Export singleton instance
 export const settingsAPI = new SettingsAPI();
-

@@ -184,8 +184,11 @@ class AuthAPI {
   }
 
   // Verify OTP
-  async verifyOTP(email: string, otp: number): Promise<ApiResponse> {
-    return this.request(API_CONFIG.ENDPOINTS.VERIFY_OTP, {
+  async verifyOTP(
+    email: string,
+    otp: string
+  ): Promise<ApiResponse<LoginResponse>> {
+    return this.request<LoginResponse>(API_CONFIG.ENDPOINTS.VERIFY_OTP, {
       method: "POST",
       body: JSON.stringify({ email, otp }),
     });
