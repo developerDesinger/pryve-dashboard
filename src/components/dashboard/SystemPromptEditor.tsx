@@ -1,11 +1,23 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { aiConfigAPI, type AIConfig } from "@/lib/api/aiConfig";
 import { useToast } from "@/hooks/useToast";
 import { cookieUtils } from "@/lib/cookies";
+import { API_CONFIG, getApiUrl } from "@/lib/config";
+
+interface ProgressData {
+  status: string;
+  progress: number;
+  totalChunks: number;
+  processedChunks: number;
+  currentBatch: number;
+  totalBatches: number;
+  message: string;
+  error?: string;
+}
 
 export default function SystemPromptEditor() {
   const { user } = useAuth();
@@ -16,6 +28,9 @@ export default function SystemPromptEditor() {
   const [prompt, setPrompt] = useState("");
   const [systemPromptActive, setSystemPromptActive] = useState(false);
   const [lastModified, setLastModified] = useState<string>("");
+  const [uploadProgress, setUploadProgress] = useState<ProgressData | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const currentSessionIdRef = useRef<string | null>(null);
 
   // Load system prompt data on component mount
   useEffect(() => {
@@ -58,6 +73,142 @@ export default function SystemPromptEditor() {
     loadSystemPrompt();
   }, [user]);
 
+  // Start progress polling
+  const startProgressPolling = (sessionId: string) => {
+    // Clear any existing polling
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+
+    const token = cookieUtils.getAuthToken();
+    if (!token) {
+      console.error('No token available for progress polling');
+      return;
+    }
+
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || API_CONFIG.BASE_URL;
+    const url = `${backendUrl}${API_CONFIG.ENDPOINTS.AI_CONFIG_PROGRESS}/${sessionId}`;
+    
+    console.log('🔄 Starting progress polling:', url);
+
+    // Poll immediately, then every 500ms
+    const pollProgress = async () => {
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            ...API_CONFIG.DEFAULT_HEADERS,
+          },
+        });
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            console.log('📭 Session not found, stopping polling');
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
+            return;
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        // Check if response has success field
+        if (!result.success) {
+          console.warn('⚠️ Progress response indicates failure:', result.error);
+          return;
+        }
+
+        const data: ProgressData = result;
+        
+        // Verify this is for the current session
+        if (currentSessionIdRef.current !== sessionId) {
+          console.warn(`⚠️ Received progress for different session. Current: ${currentSessionIdRef.current}, Received: ${sessionId}`);
+          return;
+        }
+
+        // Calculate progress if not provided
+        const calculatedProgress = data.progress ?? 
+          (data.totalChunks && data.processedChunks
+            ? Math.round((data.processedChunks / data.totalChunks) * 100)
+            : 0);
+
+        console.log('✅ Progress update received:', {
+          status: data.status,
+          progress: calculatedProgress,
+          processedChunks: data.processedChunks,
+          totalChunks: data.totalChunks,
+          message: data.message,
+        });
+
+        // Update progress state
+        setUploadProgress({
+          status: data.status || 'uploading',
+          progress: calculatedProgress,
+          totalChunks: data.totalChunks || 0,
+          processedChunks: data.processedChunks || 0,
+          currentBatch: data.currentBatch || 0,
+          totalBatches: data.totalBatches || 0,
+          message: data.message || 'Uploading chunks...',
+          error: data.error,
+        });
+
+        // Handle completion
+        if (data.status === 'completed' || data.status === 'error') {
+          console.log(`🎉 Upload ${data.status}`);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          
+          if (data.status === 'completed') {
+            setTimeout(() => {
+              setUploadProgress(null);
+              currentSessionIdRef.current = null;
+            }, 3000);
+          }
+          
+          if (data.status === 'error') {
+            showError(data.error || 'Failed to upload chunks');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error polling progress:', error);
+        // Don't stop polling on error - might be temporary network issue
+      }
+    };
+
+    // Poll immediately
+    pollProgress();
+    
+    // Then poll every 500ms
+    pollingIntervalRef.current = setInterval(pollProgress, 500);
+    
+    console.log('✅ Progress polling started');
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Cleanup polling on unmount
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, []);
+
+
+  // Generate unique session ID for progress tracking
+  const generateSessionId = () => {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
   // Handle save functionality
   const handleSave = async () => {
     if (!user) return;
@@ -69,7 +220,37 @@ export default function SystemPromptEditor() {
     }
     
     setIsSaving(true);
-    const loadingToast = showLoading('Saving system prompt...');
+    
+    // Check if prompt is large enough to require chunking (>500 words)
+    const wordCount = prompt.trim().split(/\s+/).length;
+    const needsChunking = wordCount > 500 && systemPromptActive;
+    
+    // Generate session ID for progress tracking if chunking is needed
+    const sessionId = needsChunking ? generateSessionId() : undefined;
+    currentSessionIdRef.current = sessionId || null;
+    
+    // Initialize progress state if chunking is needed
+    if (needsChunking && sessionId) {
+      setUploadProgress({
+        status: 'initializing',
+        progress: 0,
+        totalChunks: 0,
+        processedChunks: 0,
+        currentBatch: 0,
+        totalBatches: 0,
+        message: 'Preparing to upload chunks...',
+      });
+      
+      // Start progress polling
+      startProgressPolling(sessionId);
+      
+      // No need to wait - polling will start immediately
+    } else {
+      setUploadProgress(null);
+    }
+    
+    // Only show toast for non-chunking saves (small prompts)
+    const loadingToast = needsChunking ? null : showLoading('Saving system prompt...');
     
     try {
       const token = cookieUtils.getAuthToken();
@@ -79,24 +260,52 @@ export default function SystemPromptEditor() {
       const response = await aiConfigAPI.updateAIConfig(token, {
         systemPrompt: prompt.trim(),
         systemPromptActive: systemPromptActive
-      });
+      }, sessionId);
       
       if (response.success) {
-        dismiss(loadingToast);
-        showSuccess('System prompt saved successfully!');
+        // Wait a bit for final progress update if chunking was needed
+        if (needsChunking && sessionId) {
+          // Wait for progress to complete (max 60 seconds)
+          let waitCount = 0;
+          while (uploadProgress && uploadProgress.status !== 'completed' && uploadProgress.status !== 'error' && waitCount < 60) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            waitCount++;
+          }
+        }
+        
+        if (loadingToast) {
+          dismiss(loadingToast);
+        }
+        showSuccess(needsChunking ? 'System prompt saved and chunks uploaded successfully!' : 'System prompt saved successfully!');
         setIsEditing(false);
         setLastModified(new Date().toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
           day: 'numeric'
         }));
+        
+        // Clear progress after a short delay to show completion
+        if (needsChunking) {
+          setTimeout(() => {
+            setUploadProgress(null);
+            currentSessionIdRef.current = null;
+          }, 3000);
+        }
       } else {
-        dismiss(loadingToast);
+        if (loadingToast) {
+          dismiss(loadingToast);
+        }
         showError(response.message || 'Failed to save system prompt');
+        setUploadProgress(null);
+        currentSessionIdRef.current = null;
       }
     } catch (error) {
-      dismiss(loadingToast);
+      if (loadingToast) {
+        dismiss(loadingToast);
+      }
       showError('Network error. Please try again.');
+      setUploadProgress(null);
+      currentSessionIdRef.current = null;
     } finally {
       setIsSaving(false);
     }
@@ -204,6 +413,94 @@ export default function SystemPromptEditor() {
             <pre className="text-[14px] text-gray-700 whitespace-pre-wrap font-sans">{prompt}</pre>
           </div>
         )}
+
+        {/* Progress Bar - Show when uploading chunks */}
+        {uploadProgress && (
+          <div className={`mt-4 p-4 rounded-xl border ${
+            uploadProgress.status === 'error' 
+              ? 'bg-red-50 border-red-200' 
+              : uploadProgress.status === 'completed'
+              ? 'bg-green-50 border-green-200'
+              : 'bg-blue-50 border-blue-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className={`text-[14px] font-medium ${
+                uploadProgress.status === 'error' 
+                  ? 'text-red-900' 
+                  : uploadProgress.status === 'completed'
+                  ? 'text-green-900'
+                  : 'text-blue-900'
+              }`}>
+                {uploadProgress.message || 'Uploading chunks...'}
+              </span>
+              {uploadProgress.status !== 'completed' && (
+                <span className={`text-[12px] ${
+                  uploadProgress.status === 'error' 
+                    ? 'text-red-700' 
+                    : 'text-blue-700'
+                }`}>
+                  {uploadProgress.progress}%
+                </span>
+              )}
+            </div>
+            {uploadProgress.status !== 'completed' && uploadProgress.status !== 'error' && (
+              <div className={`w-full rounded-full h-2.5 mb-2 ${
+                uploadProgress.status === 'error' 
+                  ? 'bg-red-200' 
+                  : 'bg-blue-200'
+              }`}>
+                <div
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    uploadProgress.status === 'error' 
+                      ? 'bg-red-600' 
+                      : 'bg-blue-600'
+                  }`}
+                  style={{ 
+                    width: `${Math.min(Math.max(uploadProgress.progress, 0), 100)}%` 
+                  }}
+                ></div>
+              </div>
+            )}
+            {uploadProgress.status === 'completed' && (
+              <div className="flex items-center gap-2 text-green-700">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-[14px] font-medium">Upload completed successfully!</span>
+              </div>
+            )}
+            {uploadProgress.totalChunks > 0 && uploadProgress.status !== 'completed' && (
+              <p className={`text-[12px] mt-2 ${
+                uploadProgress.status === 'error' 
+                  ? 'text-red-700' 
+                  : 'text-blue-700'
+              }`}>
+                {uploadProgress.processedChunks || 0} of {uploadProgress.totalChunks} chunks uploaded
+                {uploadProgress.totalBatches > 0 && ` • Batch ${uploadProgress.currentBatch || 0}/${uploadProgress.totalBatches}`}
+              </p>
+            )}
+            {uploadProgress.status === 'error' && uploadProgress.error && (
+              <p className="text-[12px] text-red-600 mt-2">
+                Error: {uploadProgress.error}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Simple Loading Indicator when saving (non-chunking) */}
+        {isSaving && !uploadProgress && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+              <div className="flex-1">
+                <p className="text-[14px] font-medium text-blue-900">
+                  Saving system prompt...
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* Actions */}
@@ -222,11 +519,14 @@ export default function SystemPromptEditor() {
         <button 
           onClick={isEditing ? handleSave : () => setIsEditing(true)}
           disabled={isLoading || isSaving}
-          className={`w-full px-4 py-2 bg-[#757575] text-white rounded-lg text-[14px] font-medium hover:brightness-95 transition-colors ${
+          className={`w-full px-4 py-2 bg-[#757575] text-white rounded-lg text-[14px] font-medium hover:brightness-95 transition-colors flex items-center justify-center gap-2 ${
             isSaving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
           }`}
         >
-          {isSaving ? 'Saving...' : isEditing ? 'Save' : 'Edit'}
+          {isSaving && (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          )}
+          <span>{isSaving ? 'Saving...' : isEditing ? 'Save' : 'Edit'}</span>
         </button>
         {isEditing && (
           <button 

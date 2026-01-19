@@ -3,6 +3,7 @@
 import SystemPromptEditor from "@/components/dashboard/SystemPromptEditor";
 import FallbackMessages from "@/components/dashboard/FallbackMessages";
 import EmotionalResponseRules from "@/components/dashboard/EmotionalResponseRules";
+import SystemRules from "@/components/dashboard/SystemRules";
 
 export default function PromptsPage() {
   return (
@@ -26,6 +27,9 @@ export default function PromptsPage() {
           <FallbackMessages />
         </div>
       </div>
+
+      {/* System Rules */}
+      <SystemRules />
 
       {/* Emotional Response Rules */}
       <EmotionalResponseRules />

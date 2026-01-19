@@ -135,10 +135,13 @@ class AIConfigAPI {
   // Update AI configuration
   async updateAIConfig(
     token: string,
-    configData: Partial<AIConfig>
+    configData: Partial<AIConfig>,
+    sessionId?: string
   ): Promise<ApiResponse<AIConfig>> {
     try {
-      const url = `${this.baseURL}${API_CONFIG.ENDPOINTS.AI_CONFIG}`;
+      const url = sessionId 
+        ? `${this.baseURL}${API_CONFIG.ENDPOINTS.AI_CONFIG}?sessionId=${sessionId}`
+        : `${this.baseURL}${API_CONFIG.ENDPOINTS.AI_CONFIG}`;
       const config: RequestInit = {
         method: "PATCH",
         headers: {
