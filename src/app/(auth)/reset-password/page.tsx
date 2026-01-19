@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 import { authAPI } from "@/lib/api/auth";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const params = useSearchParams();
   const router = useRouter();
   const { showError, showSuccess, showLoading, dismiss } = useToast();
@@ -165,5 +165,21 @@ export default function ResetPasswordPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-dvh grid place-items-center p-6">
+        <div className="card w-full max-w-sm p-6">
+          <div className="text-center">
+            <div className="text-[18px] font-semibold mb-2">Loading...</div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { authAPI } from "@/lib/api/auth";
 import { cookieUtils } from "@/lib/cookies";
 import { useAuth } from "@/contexts/AuthContext";
 
-export default function ForgotPasswordSentPage() {
+function ForgotPasswordSentContent() {
   const params = useSearchParams();
   const router = useRouter();
   const email = params.get("email");
@@ -159,5 +159,21 @@ export default function ForgotPasswordSentPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ForgotPasswordSentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-dvh grid place-items-center p-6">
+        <div className="card w-full max-w-sm p-6">
+          <div className="text-center">
+            <div className="text-[18px] font-semibold mb-2">Loading...</div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ForgotPasswordSentContent />
+    </Suspense>
   );
 }

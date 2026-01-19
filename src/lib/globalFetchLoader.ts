@@ -23,7 +23,14 @@ export function enableGlobalFetchLoader() {
   const originalFetch = window.fetch.bind(window);
 
   window.fetch = async (...args) => {
-    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+    let url = '';
+    if (typeof args[0] === 'string') {
+      url = args[0];
+    } else if (args[0] instanceof URL) {
+      url = args[0].toString();
+    } else if (args[0] instanceof Request) {
+      url = args[0].url;
+    }
     
     // Skip global loader for excluded endpoints
     if (shouldSkipLoader(url)) {
